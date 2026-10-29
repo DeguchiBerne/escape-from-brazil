@@ -1,4 +1,4 @@
-# Gera icons/capa.jpg (capa leve da tela inicial) a partir de efb.jpg: powershell -File scriptsver.ps1 -root .
+# Gera icons/capa.jpg (capa leve da tela inicial) a partir de efb.jpg: powershell -File scripts/cover.ps1 -root .
 param([string]$root)
 Add-Type -AssemblyName System.Drawing
 $src = [System.Drawing.Image]::FromFile("$root\efb.jpg")
