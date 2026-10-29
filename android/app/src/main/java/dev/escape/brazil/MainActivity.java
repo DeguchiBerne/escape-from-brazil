@@ -44,10 +44,13 @@ public class MainActivity extends Activity {
         else web.loadUrl("file:///android_asset/game/index.html");
     }
 
-    // Voltar: na tela de título fecha o app; em qualquer outra tela volta ao título.
+    // Voltar: fora do título volta ao título; no título da versão clássica volta à 2.0; no título da 2.0 fecha o app.
     private void handleBack() {
-        web.evaluateJavascript("(function(){var t=document.getElementById('title');if(!t||!t.classList.contains('hidden'))return false;location.reload();return true;})()",
-            handled -> { if (!"true".equals(handled)) finish(); });
+        web.evaluateJavascript("(function(){var t=document.getElementById('title');if(t&&t.classList.contains('hidden')){location.reload();return 'reload';}return location.pathname.indexOf('/classico-')>=0?'main':'close';})()",
+            result -> {
+                if ("\"main\"".equals(result)) web.loadUrl("file:///android_asset/game/index.html");
+                else if (!"\"reload\"".equals(result)) finish();
+            });
     }
     @Override public void onBackPressed() { handleBack(); }
 

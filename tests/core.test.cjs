@@ -15,7 +15,7 @@ const botChoice = s => C.suggest(s);
 function settle(s) {
   for (let i = 0; i < 20 && s.pending; i++) {
     const t = s.pending.type;
-    C.act(s, t === 'card' ? 'opt:1' : t === 'roll' ? 'accept' : t === 'attack' ? 'duck' : 'dodge');
+    C.act(s, t === 'card' ? 'opt:1' : t === 'roll' ? 'accept' : t === 'attack' ? 'duck' : t === 'detour' ? 'detour:skip' : 'dodge');
   }
 }
 
@@ -316,6 +316,32 @@ test('nenhum nome real sobrou no texto visível do jogo', () => {
     const hit = lines.find(l => l.includes(real));
     assert(!hit, `${real}: ${hit && hit.trim()}`);
   }
+});
+
+test('2.0: no mapa-múndi, casas-bônus entre as fases (visitar ou seguir)', () => {
+  const s = C.newGame(3);
+  s.node = 'saida';
+  C.act(s, 'exit:0');
+  if (s.pending && s.pending.type === 'roll') C.act(s, 'accept');
+  assert.strictEqual(s.phase, 1);
+  assert.deepStrictEqual(s.pending, { type: 'detour', spot: 1 });
+  assert.deepStrictEqual(C.actions(s).map(a => a.id), ['detour:visit', 'detour:skip']);
+  const h = s.hours, p = s.paranoia;
+  C.act(s, 'detour:visit');
+  assert.strictEqual(s.detours[1], 'visit');
+  assert.strictEqual(s.hours, h + 1);
+  assert(s.paranoia < p, 'a palestra devia baixar a Paranoia');
+  assert(s.log.some(l => l.text.includes('Pablito Marco')));
+
+  const t = C.newGame(3);
+  t.phase = 3; t.node = 'aeroporto'; t.contacts.piloto = true;
+  C.act(t, 'exit:0');
+  assert.deepStrictEqual(t.pending, { type: 'detour', spot: 4 });
+  const usd = t.usd;
+  C.act(t, 'detour:skip');
+  assert.strictEqual(t.usd, usd);
+  assert.strictEqual(t.detours[4], 'skip');
+  assert.deepStrictEqual(Object.keys(C.DETOURS), ['1', '3', '4']);
 });
 
 console.log(`\n${passed} testes passaram`);

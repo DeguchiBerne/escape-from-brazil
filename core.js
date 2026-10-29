@@ -14,7 +14,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const VERSION = '1.2.0';  // única fonte da versão: o Android (build.gradle.kts) lê daqui
+  const VERSION = '2.0.0';  // única fonte da versão: o Android (build.gradle.kts) lê daqui
   const BAG = 100;          // R$ mil por mala de reais
   const USD_BAG = 400;      // R$ mil (equivalente) por mala de dólares
   const DEADLINE = 17;      // hora 0 = seg 26/10 18:00; prazo do STF = ter 27/10 11:00
@@ -41,6 +41,23 @@
     dificil: { name: 'MENOS FÁCIL', reais: 50, cerco: 10, paranoia: 15, fakeNews: 2, lanterns: 1, teleports: 2, rate: 1, bonus: 0 },
   };
   const MILEI = 'Esse Pangaré aqui é comida.';
+
+  /* 2.0: mapa-múndi entre as fases (estilo "casinha bônus"). Ao chegar na fase da chave,
+     a família passa por uma casa no caminho e escolhe visitar ou seguir direto. */
+  const DETOURS = {
+    1: { id: 'marco', name: 'Posto Motivacional do Pablito Marco', art: 'marcal',
+      text: 'No acostamento da BR, o coach montou um "posto de abastecimento mental" com fila de seguidores.',
+      visit: 'Parar para a palestra', fx: { hours: 1, paranoia: -15 },
+      note: '"Faz o M: Mala, Montaria e Miami!" Uma hora de palestra e a cabeça esvazia. Paranoia −15.' },
+    3: { id: 'cassino', name: 'Cassino da Tríplice Fronteira', art: 'cedula',
+      text: 'Luzes piscando do lado argentino. Dizem que a roleta aceita reais em sacola.',
+      visit: 'Arriscar uma ficha', fx: { hours: 1, usd: 40, cerco: 6 },
+      note: 'Deu vermelho! US$ 40 mil a mais, mas um segurança tirou foto. Cerco +6.' },
+    4: { id: 'mestre', name: 'Ilha do Banco Mestre', art: 'vorcaro',
+      text: 'Uma ilha particular no meio do voo. Danilo Torcaro acena da pista com um cofre.',
+      visit: 'Pousar e pegar o cofre', fx: { hours: 2, usd: 60 },
+      note: '"Irmão! Metade do cofre é sua." US$ 60 mil a mais, duas horas a menos.' },
+  };
 
   const CONTACTS = {
     queiroz: { name: 'Querijoz', phase: 0, cost: 0, hours: 1, dc: 6, art: 'queiroz',
@@ -268,7 +285,7 @@
       ghostPower: 0, calm: 0,
       contacts: {}, taken: {}, sent: {}, deliveries: [], fueled: false, done: {}, patrols: [],
       deck: [], used: {}, sinceCard: 0, pending: null, ended: null, coach: [], result: null, roll: null,
-      deadlineNoted: false, trailNoted: false, lost: 0, stolen: 0, trail: [], log: [], events: [], seq: 0,
+      deadlineNoted: false, trailNoted: false, detours: {}, lost: 0, stolen: 0, trail: [], log: [], events: [], seq: 0,
       stats: { threats: 0, fakes: 0, cards: 0, calls: 0, fakeNews: 0, teleports: 0, rolls: 0, fails: 0, rigged: 0, attacks: 0 },
     };
     s.deck = shuffle(s, CARDS.map((_, i) => i));
@@ -498,6 +515,14 @@
     if (p.type === 'card') {
       return p.card.options.map((o, i) => ({ id: `opt:${i}`, kind: 'opt', label: o.label, detail: fxText(o.fx) }));
     }
+    if (p.type === 'detour') {
+      const d = DETOURS[p.spot];
+      const gain = d.fx.usd ? `US$ ${d.fx.usd} mil` : null;
+      return [
+        { id: 'detour:visit', kind: 'detour', label: d.visit, detail: d.text, cost: { h: d.fx.hours, cerco: d.fx.cerco, paranoia: d.fx.paranoia, gain } },
+        { id: 'detour:skip', kind: 'detour', label: 'Seguir direto pelo caminho', cost: { h: 0 } },
+      ];
+    }
     if (p.type === 'roll') {
       const list = [{ id: 'accept', kind: 'accept', label: 'Aceitar o resultado', detail: p.failText }];
       for (let n = 1; n <= 20; n++) list.push({ id: `rig:${n}`, kind: 'rig', n, label: String(n), detail: `Paranoia +${RIG_PARANOIA}, Fantasma +1 de força.` });
@@ -689,6 +714,7 @@
     s.node = PHASES[p].start;
     s.events.push({ type: 'phase', phase: p });
     note(s, `${PHASES[p].name}: ${PHASES[p].subtitle}.`);
+    if (DETOURS[p]) s.pending = { type: 'detour', spot: p };
     if (p === 3) { s.events.push({ type: 'mileiScene' }); note(s, `Na chegada, Chavo Miley olha o cavalo: "${MILEI}"`); }
     if (p === 1) {
       note(s, `A partir daqui a família segue no ${HORSE}.`);
@@ -721,6 +747,19 @@
 
   function resolvePending(s, a) {
     const p = s.pending;
+    if (a.kind === 'detour') {
+      const d = DETOURS[p.spot], visit = a.id === 'detour:visit';
+      s.pending = null;
+      s.detours[p.spot] = visit ? 'visit' : 'skip';
+      if (visit) {
+        advance(s, d.fx.hours);
+        if (d.fx.cerco) s.cerco = clamp(s.cerco + d.fx.cerco);
+        if (d.fx.paranoia) s.paranoia = clamp(s.paranoia + d.fx.paranoia);
+        if (d.fx.usd) s.usd += d.fx.usd;
+        note(s, `${d.name}: ${d.note}`);
+      } else note(s, `Passou direto pelo ${d.name}.`);
+      return;
+    }
     if (a.kind === 'opt') {
       const o = p.card.options[Number(a.id.slice(4))];
       s.pending = null;
@@ -1029,6 +1068,7 @@
     if (s.pending) {
       const p = s.pending;
       if (p.type === 'card') return 'opt:0';
+      if (p.type === 'detour') return (p.spot === 1 && s.paranoia > 45) || (p.spot === 4 && s.hours < LIMIT - 12) ? 'detour:visit' : 'detour:skip';
       if (p.type === 'roll') return s.paranoia < 45 && s.ghostPower < 3 ? 'rig:20' : 'accept';
       if (p.type === 'attack') return 'duck';
       if (has('lantern')) return 'lantern';
@@ -1055,7 +1095,7 @@
   }
 
   return {
-    VERSION, CONTACTS, PHASES, CARDS, THREATS, ENDINGS, COACH, BROTHER, POEMS, FACTS, HORSE, NAMES, LEVELS, MILEI, BAG, USD_BAG, DEADLINE, LIMIT, GRID, RIG_PARANOIA,
+    VERSION, DETOURS, CONTACTS, PHASES, CARDS, THREATS, ENDINGS, COACH, BROTHER, POEMS, FACTS, HORSE, NAMES, LEVELS, MILEI, BAG, USD_BAG, DEADLINE, LIMIT, GRID, RIG_PARANOIA,
     newGame, actions, act, clock, hourOfDay, inWindow, capacity, bags, money, overflow, neighbors, goals, suggest,
   };
 });

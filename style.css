@@ -109,6 +109,18 @@ button.power b { font-family: var(--pixel); font-size: clamp(6px, 1.8vw, 8px); f
 button.power i { font-style: normal; font-family: var(--pixel); font-size: 10px; background: var(--red); padding: 2px 4px; }
 button.power.on { background: #1d6b2d; }
 button.power:disabled { opacity: .45; }
+/* 2.0: mapa-múndi entre as fases. */
+#overworld { position: fixed; inset: 0; z-index: 9; background: #0b0812; display: grid; place-items: center; padding: 16px; overflow: auto; }
+#overworld.hidden { display: none; }
+.owCard { width: min(640px, 100%); display: grid; gap: 8px; }
+.owCard .tag { justify-self: start; margin: 0; animation: none; }
+#owArt { width: 100%; image-rendering: pixelated; border: 4px solid var(--gold); box-shadow: 6px 6px 0 #000; background: #2b5fb8; }
+#owTitle { font-family: var(--pixel); font-size: 13px; line-height: 1.5; color: var(--gold); margin: 4px 0 0; }
+#owText { margin: 0; }
+#owStats { margin: 0; color: var(--quiet); font-size: 18px; }
+#owChoices { display: grid; gap: 8px; }
+#owChoices .ok { text-align: center; font-family: var(--pixel); font-size: 12px; }
+#classicLink { color: var(--quiet); font-size: 18px; }
 .version { font-family: var(--pixel); font-size: 9px; color: var(--quiet); margin: 0; }
 #goals { list-style: none; margin: 0; padding: 0; font-size: 19px; }
 #goals li.done { color: var(--quiet); text-decoration: line-through; }

@@ -55,10 +55,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(500);
   await shot('2-moraes.png');
   // Cena do Moraes e intro da fase: fecha os modais da fila.
-  for (let i = 0; i < 5 && !(await ev("document.getElementById('modal').classList.contains('hidden')")); i++) {
-    await ev("document.querySelector('#modalChoices button').click()");
+  // ...e o mapa-múndi (2.0) entre a cena do Xande e a intro da fase.
+  let sawWorld = false;
+  for (let i = 0; i < 8; i++) {
+    if (!(await ev("document.getElementById('overworld').classList.contains('hidden')"))) {
+      if (!sawWorld) { await sleep(400); await shot('2b-mapa-mundi.png'); sawWorld = true; }
+      await ev("document.querySelector('#owChoices button').click()");
+    } else if (!(await ev("document.getElementById('modal').classList.contains('hidden')"))) {
+      await ev("document.querySelector('#modalChoices button').click()");
+    } else break;
     await sleep(150);
   }
+  assert(sawWorld, 'o mapa-múndi não apareceu no começo');
   // Tráfico de influência começa fechado; abre para a captura e fecha de novo.
   assert.equal(await ev("document.getElementById('missionBody').classList.contains('hidden')"), true, 'dicas deviam começar fechadas');
   await ev("document.getElementById('missionBtn').click()");
@@ -105,6 +113,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // Joga até o fim clicando nos botões reais: o botão ★ PRÓXIMO PASSO, ou a sugestão dentro do plantão.
   const policy = `(() => {
+    if (!document.getElementById('overworld').classList.contains('hidden')) {
+      const want = EscapeCore.suggest(EscapeGame.state());
+      const bs = [...document.querySelectorAll('#owChoices button')];
+      const b = bs.find(x => x.dataset.id === want) || bs[0];
+      if (!b) return 'ow-vazio';
+      b.click(); return 'ow:' + b.textContent.slice(0, 20);
+    }
     const modal = !document.getElementById('modal').classList.contains('hidden');
     if (modal) {
       const want = EscapeGame.queue().length ? '' : EscapeCore.suggest(EscapeGame.state());
@@ -124,6 +139,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const st = await ev('({ ended: !!EscapeGame.state().ended, phase: EscapeGame.state().phase, modal: !document.getElementById("modal").classList.contains("hidden") })');
     if (st.ended) { if (st.modal) await ev("document.querySelector('#modalChoices button').click()"); await sleep(600); continue; }
     const tag = await ev("document.getElementById('modal').classList.contains('hidden') ? '' : document.getElementById('modalTag').textContent");
+    if (!shotTags.has('hut') && (await ev("!document.getElementById('overworld').classList.contains('hidden') && document.querySelectorAll('#owChoices button').length === 2"))) {
+      shotTags.add('hut'); await shot('5e-casinha-bonus.png');
+    }
+    if (!shotTags.has('worldmove') && (await ev("!document.getElementById('overworld').classList.contains('hidden') && document.getElementById('owChoices').textContent.includes('Pular')"))) {
+      shotTags.add('worldmove'); await sleep(700); await shot('5f-mapa-andando.png'); await sleep(1200); continue;
+    }
     if (!tookCard && tag === 'PLANTÃO URGENTE') { await shot('4-plantao.png'); tookCard = true; }
     if (!shotTags.has('roll') && tag.includes('FALHOU') && tag.startsWith('🎲 O DADO')) {
       shotTags.add('roll');
@@ -152,6 +173,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       continue;
     }
     const did = await ev(policy);
+    if (process.env.QA_DEBUG && did.startsWith('ow')) console.log(did, await ev('JSON.stringify(EscapeGame.state().pending)'));
     if (did.startsWith('SEM-BOTAO')) { console.log(did, errors, await ev('JSON.stringify(EscapeGame.queue().map(x => x.type))')); await shot('erro.png'); throw Error('sem botão de próximo passo'); }
     await sleep(40);
   }
@@ -184,7 +206,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   assert(String(await ev("document.getElementById('modalTitle').textContent")).includes('ACABOU'), 'Xande não disse ACABOU');
 
   assert.deepEqual(errors, [], 'erros de JavaScript na página');
-  console.log(`Navegador OK: níveis, quem é quem, Miley ${shotTags.has('milei') ? 'visto' : 'não alcançado'}, título, intro, clique no mapa, teletransporte, plantão ${tookCard ? 'visto' : 'não sorteado'}, final "${ending}". Capturas em tests/shots/.`);
+  console.log(`Navegador OK: mapa-múndi, casinha ${shotTags.has('hut') ? 'vista' : 'não vista'}, níveis, quem é quem, Miley ${shotTags.has('milei') ? 'visto' : 'não alcançado'}, título, intro, clique no mapa, teletransporte, plantão ${tookCard ? 'visto' : 'não sorteado'}, final "${ending}". Capturas em tests/shots/.`);
   ws.close();
   browser.kill();
 })().catch(e => { console.error(e); browser.kill(); process.exitCode = 1; });

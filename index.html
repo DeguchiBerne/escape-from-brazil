@@ -29,6 +29,7 @@
       </div>
       <label class="seed">Plantão nº <input id="seedInput" inputmode="numeric" maxlength="6"></label>
       <button id="quitBtn">FECHAR O JOGO</button>
+      <a id="classicLink" href="classico-1.2/index.html">Jogar a versão clássica 1.2.0 (sem mapa-múndi)</a>
       <p class="disclaimer">Obra de ficção e paródia. Todos os nomes e personagens são fictícios; qualquer semelhança com pessoas reais é sátira. As notas "inspirado em" citam casos noticiados pela imprensa; investigações não implicam culpa.</p>
       <p id="version" class="version"></p>
     </section>
@@ -80,6 +81,17 @@
       <button id="againBtn" class="big">NOVO PLANTÃO</button>
       <button id="replayBtn">REPETIR ESTE PLANTÃO</button>
       <button id="homeBtn">TELA PRINCIPAL</button>
+    </section>
+
+    <section id="overworld" class="hidden" aria-label="Mapa da fuga">
+      <div class="owCard">
+        <p id="owTag" class="tag">MAPA DA FUGA</p>
+        <canvas id="owArt" width="640" height="360"></canvas>
+        <h3 id="owTitle"></h3>
+        <p id="owText"></p>
+        <p id="owStats"></p>
+        <div id="owChoices"></div>
+      </div>
     </section>
 
     <div id="toast" class="hidden" role="status"></div>

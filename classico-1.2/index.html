@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Escape from Brazil</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <section id="title" class="screen">
+      <canvas id="titleArt" width="320" height="144"></canvas>
+      <h1>ESCAPE FROM BRAZIL</h1>
+      <h2>THE PHANTOM OF COMMUNISM</h2>
+      <p class="pitch">Você perdeu a eleição. O prazo do passaporte vence às 11h. O Fantasma do Comunismo está em todo lugar, inclusive na sua cabeça.</p>
+      <button id="startBtn" class="big">JOGAR</button>
+      <div id="levelPick" class="hidden">
+        <p class="pickTitle">ESCOLHA A DIFICULDADE</p>
+        <button class="level" data-level="facil"><b>FACIL</b><small>Mais dinheiro e poderes, dado +3, Cerco lento.</small></button>
+        <button class="level" data-level="medio"><b>MEIO FACIL</b><small>Dado +1, Cerco um pouco mais lento, 2 lanternas.</small></button>
+        <button class="level" data-level="dificil"><b>MENOS FACIL</b><small>O jogo original. A PF não perdoa.</small></button>
+      </div>
+      <div id="levelSay" class="hidden">
+        <canvas id="sayArt" width="320" height="100"></canvas>
+        <p id="sayWho"></p>
+        <p id="sayLine" class="shout"></p>
+        <button id="goBtn" class="big">COMEÇAR A FUGA</button>
+        <button id="backBtn">voltar</button>
+      </div>
+      <label class="seed">Plantão nº <input id="seedInput" inputmode="numeric" maxlength="6"></label>
+      <button id="quitBtn">FECHAR O JOGO</button>
+      <p class="disclaimer">Obra de ficção e paródia. Todos os nomes e personagens são fictícios; qualquer semelhança com pessoas reais é sátira. As notas "inspirado em" citam casos noticiados pela imprensa; investigações não implicam culpa.</p>
+      <p id="version" class="version"></p>
+    </section>
+
+    <section id="game" class="screen hidden">
+      <header id="hud">
+        <div class="hudBtns">
+          <button id="musicBtn" class="mini" aria-label="Música"></button>
+          <button id="tutorialBtn" class="mini">? TUTORIAL</button>
+          <button id="menuBtn" class="mini">☰ MENU</button>
+        </div>
+        <div class="row">
+          <span id="clock"></span>
+          <span id="phaseName"></span>
+        </div>
+        <div class="meters">
+          <div class="meter"><span>CERCO</span><div class="bar"><i id="cercoBar"></i></div><b id="cercoVal"></b></div>
+          <div class="meter paranoia"><span>PARANOIA</span><div class="bar"><i id="paranoiaBar"></i></div><b id="paranoiaVal"></b></div>
+        </div>
+        <div id="money"><span class="label-money">DINHEIRO VIVO</span><b id="reais"></b><b id="usd"></b><span id="bags"></span></div>
+        <div class="row small"><span id="powers"></span></div>
+      </header>
+      <div id="stage">
+        <div id="scroller"><div id="world">
+        <canvas id="map" width="320" height="208"></canvas>
+        <div id="labels"></div>
+        <div id="bubbles"></div>
+        </div></div>
+        <button id="pFake" class="power left" title="Fake news: &quot;estou em Dubai&quot;">📱<b>FAKE NEWS</b><i></i></button>
+        <button id="pTp" class="power right" title="Teletransporte do Funcionário Fantasma">👻<b>TELEPORTE</b><i></i></button>
+        <button id="zoomBtn" class="zoom" aria-label="Zoom do mapa">🔍 2×</button>
+      </div>
+      <div id="panel">
+        <div id="actions"></div>
+        <section id="mission">
+          <button id="missionBtn" class="missionBtn" aria-expanded="false">🤝 TRÁFICO DE INFLUÊNCIA <span>▸ ver dicas</span></button>
+          <div id="missionBody" class="hidden"><div id="nextBox"></div><ul id="goals"></ul></div>
+        </section>
+        <ol id="log"></ol>
+      </div>
+    </section>
+
+    <section id="end" class="screen hidden">
+      <canvas id="endArt" width="320" height="180"></canvas>
+      <h1 id="endTitle"></h1>
+      <p id="endStars" class="stars"></p>
+      <p id="endText"></p>
+      <ul id="endStats"></ul>
+      <button id="againBtn" class="big">NOVO PLANTÃO</button>
+      <button id="replayBtn">REPETIR ESTE PLANTÃO</button>
+      <button id="homeBtn">TELA PRINCIPAL</button>
+    </section>
+
+    <div id="toast" class="hidden" role="status"></div>
+
+    <div id="modal" class="hidden" role="dialog" aria-modal="true">
+      <div class="card">
+        <p id="modalTag" class="tag"></p>
+        <div class="artRow"><canvas id="modalArt" width="320" height="84"></canvas><div id="dice" class="hidden"></div></div>
+        <h3 id="modalTitle"></h3>
+        <p id="modalText"></p>
+        <div id="modalFx"></div>
+        <p id="modalFact" class="fact"></p>
+        <div id="modalChoices"></div>
+      </div>
+    </div>
+  </main>
+  <script src="core.js"></script>
+  <script src="sprites.js"></script>
+  <script src="maps.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

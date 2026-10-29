@@ -13,6 +13,13 @@ Obra de ficção e paródia. Todos os nomes são fictícios (parecidos, nunca ig
 - **Navegador:** https://deguchiberne.github.io/escape-from-brazil/ (ou abra `index.html` direto do disco; não há build nem npm).
 - **Android:** baixe o APK em Releases, ou gere com `cd android; .\gradlew.bat :app:assembleDebug` (precisa de `JAVA_HOME` apontando para o JBR do Android Studio e de `android/local.properties` com `sdk.dir`). Se o Gradle pegar outro Java (por exemplo, o JRE de uma extensão do VS Code, sem jlink), acrescente `"-Porg.gradle.java.installations.auto-detect=false" "-Porg.gradle.java.installations.fromEnv=JAVA_HOME"`. O build copia o jogo web para os assets; o app é só uma casca WebView, offline.
 
+## Versão 2.0.0: mapa-múndi
+
+- Entre as fases, um mapa-múndi no estilo dos jogos de plataforma 16 bits: caminho pontilhado Brasília → Foz → Ponte → Puerto Iguazú → Guayaquil → Miami, o pangaré (ou o jatinho) andando, bandeira nas fases vencidas e o Fantasma do Comunismo seguindo a família.
+- Casinhas bônus no caminho (`DETOURS` em core.js): Posto Motivacional do Pablito Marco (antes de Foz), Cassino da Tríplice Fronteira (antes de Puerto Iguazú) e Ilha do Banco Mestre (antes de Guayaquil). O cavalo para e você escolhe visitar ou seguir direto.
+- ☰ MENU → "Ver o mapa da fuga" mostra onde a família está.
+- A versão 1.2.0 continua jogável: link na tela inicial (`classico-1.2/`), branch `versao-1.2` e release v1.2.0 no GitHub.
+
 ## Versão 1.2.0
 
 - Nomes: Fluvio, Fernandete, Jairo, Ronan e Charlitos Bozonero; Micheki Bozonero; Frabiccio Querijoz; Alejandro de Amores, o Xande; Pablito Marco; Danilo Torcaro; Chavo Miley; Polvo da Selva.

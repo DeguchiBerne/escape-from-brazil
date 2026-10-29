@@ -16,7 +16,7 @@ android {
 // O jogo web (pasta acima de android/) é copiado para os assets antes de cada build.
 val gameRoot = rootProject.projectDir.parentFile
 val syncGame = tasks.register<Sync>("syncGame") {
-    from(gameRoot) { include("index.html", "style.css", "*.js", "fonts/**") }
+    from(gameRoot) { include("index.html", "style.css", "*.js", "fonts/**", "classico-*/**") }
     into(file("src/main/assets/game"))
 }
 tasks.named("preBuild") { dependsOn(syncGame) }

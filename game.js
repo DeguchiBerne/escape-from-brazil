@@ -422,6 +422,7 @@
   }
 
   function loop(now) {
+    if (!$('overworld').classList.contains('hidden')) owRender(now);
     if (!$('game').classList.contains('hidden')) {
       render(now);
       if (zoomed && walk && party[0]) centerOn(party[0].x, party[0].y);
@@ -804,6 +805,10 @@
   }
 
   function updateModal() {
+    if (s.pending && s.pending.type === 'detour' && !queue.some(q => q.type === 'overworld')) queue.unshift({ type: 'overworld', to: s.pending.spot });
+    const ow = queue.length && queue[0].type === 'overworld';
+    $('overworld').classList.toggle('hidden', !ow);
+    if (ow) { hideModal(); owUpdate(true); return; }
     if (queue.length) {
       const q = queue[0];
       if (q.type === 'moraes') {
@@ -906,13 +911,14 @@
       } else if (e.type === 'mileiScene') {
         intros.push({ type: 'milei' });
       } else if (e.type === 'phase') {
-        intros.push({ type: 'intro', phase: e.phase });
+        intros.push({ type: 'overworld', to: e.phase }, { type: 'intro', phase: e.phase });
         walk = null;
         placeParty(C.PHASES[e.phase].start);
         if (zoomed) requestAnimationFrame(() => centerOn(party[0].x, party[0].y));
         SFX.card();
       } else if (e.type === 'end') {
         (e.ending === 'won' ? SFX.won : SFX.lost)();
+        if (e.ending === 'won') intros.push({ type: 'overworld', to: 5, final: true });
       } else if (SFX[e.type]) {
         SFX[e.type]();
       }
@@ -954,7 +960,7 @@
     const now = performance.now();
     const intros = handleEvents(now);
     if (s.pending && s.pending.type === 'roll') pendingArt = art;
-    if (s.result) {
+    if (s.result && !id.startsWith('detour:')) {
       queue.push({ type: 'result', modal: resultModal({ ...s.result, art }, s.events) });
       floatMoney(s.result.fx, now);
     }
@@ -979,6 +985,226 @@
     $('end').classList.add('hidden');
     $('game').classList.remove('hidden');
     refresh();
+  }
+
+  /* ---------- 2.0: mapa-múndi no estilo dos jogos de plataforma 16 bits ----------
+     Entre as fases o pangaré anda por um caminho pontilhado (Brasília → Miami). Algumas
+     etapas têm uma casinha bônus no meio: o cavalo para e você escolhe visitar ou seguir. */
+  const OW = {
+    // [x, y, nome, deslocamento do rótulo]
+    nodes: [[198, 100, 'BRASILIA', 0, 12], [164, 140, 'FOZ', 22, 0], [146, 154, 'PONTE', 0, 12], [118, 138, 'IGUAZU', -26, 0], [64, 72, 'GUAYAQUIL', 0, 12], [134, 22, 'MIAMI', 0, 12]],
+    huts: { 1: [184, 124], 3: [132, 154], 4: [86, 106] },
+    hills: [[214, 80], [170, 92], [120, 120], [86, 92], [206, 132], [150, 168]],
+    palms: [[226, 110], [186, 150], [70, 128], [100, 60], [150, 26], [112, 14]],
+  };
+  const owCanvas = $('owArt'), og = owCanvas.getContext('2d');
+  const OWW = 320, OWH = 180;
+  let owBg = null, owState = '', owSound = false;
+
+  function owLand(pts, col) {
+    const c = document.createElement('canvas');
+    c.width = OWW; c.height = OWH;
+    const g = c.getContext('2d');
+    g.fillStyle = col;
+    g.beginPath();
+    pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+    g.closePath();
+    g.fill();
+    // Sem antisserrilhado: cada pixel é terra ou mar.
+    const d = g.getImageData(0, 0, OWW, OWH);
+    for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 110 ? 255 : 0;
+    g.putImageData(d, 0, 0);
+    return c;
+  }
+  function owBase() {
+    if (owBg) return owBg;
+    const c = document.createElement('canvas');
+    c.width = OWW; c.height = OWH;
+    const g = c.getContext('2d');
+    g.fillStyle = '#2b5fb8'; g.fillRect(0, 0, OWW, OWH);
+    g.fillStyle = '#4a86dc';
+    for (let y = 3; y < OWH; y += 7) for (let x = ((y / 7) % 2) * 7; x < OWW; x += 14) g.fillRect(x, y, 4, 1);
+    const SA = [[70, 52], [100, 40], [140, 42], [176, 52], [214, 70], [246, 90], [242, 108], [224, 126], [206, 146], [180, 160], [158, 172], [140, 179], [128, 170], [122, 152], [110, 136], [88, 118], [64, 98], [48, 78]];
+    const NA = [[90, 4], [152, 2], [170, 14], [150, 30], [128, 34], [112, 46], [96, 40], [84, 22]];
+    const shrink = (pts, k) => {
+      const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+      return pts.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]);
+    };
+    for (const pts of [SA, NA]) {
+      const edge = owLand(pts, '#1a1423');
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1]]) g.drawImage(edge, dx, dy);
+      g.drawImage(owLand(pts, '#f2d98a'), 0, 0);
+      g.drawImage(owLand(shrink(pts, 0.93), '#3fa34d'), 0, 0);
+    }
+    // Xadrez de grama escura, como nos mapas de mundo.
+    const d = g.getImageData(0, 0, OWW, OWH);
+    for (let y = 0; y < OWH; y++) for (let x = 0; x < OWW; x++) {
+      const i = (y * OWW + x) * 4;
+      if (d.data[i] === 0x3f && d.data[i + 1] === 0xa3 && ((x >> 2) + (y >> 2)) % 2 === 0) { d.data[i] = 0x35; d.data[i + 1] = 0x92; d.data[i + 2] = 0x42; }
+    }
+    g.putImageData(d, 0, 0);
+    // Morros com olhinhos e palmeiras.
+    for (const [x, y] of OW.hills) {
+      g.fillStyle = '#1a1423'; g.beginPath(); g.ellipse(x, y, 9, 8, 0, Math.PI, 0); g.fill();
+      g.fillStyle = '#5ccf6a'; g.beginPath(); g.ellipse(x, y, 8, 7, 0, Math.PI, 0); g.fill();
+      g.fillStyle = '#1a1423'; g.fillRect(x - 3, y - 5, 1, 2); g.fillRect(x + 2, y - 5, 1, 2);
+    }
+    for (const [x, y] of OW.palms) {
+      g.fillStyle = '#7a4f2e'; g.fillRect(x, y - 6, 1, 6);
+      g.fillStyle = '#1d6b2d'; g.fillRect(x - 3, y - 7, 7, 1); g.fillRect(x - 2, y - 8, 5, 1); g.fillRect(x - 4, y - 6, 2, 1); g.fillRect(x + 3, y - 6, 2, 1);
+    }
+    // Caminho pontilhado ligando todas as fases (passando pelas casinhas).
+    const route = [];
+    OW.nodes.forEach((n, i) => { if (OW.huts[i]) route.push(OW.huts[i]); route.push(n); });
+    for (let i = 1; i < route.length; i++) {
+      const [ax, ay] = route[i - 1], [bx, by] = route[i];
+      const len = Math.hypot(bx - ax, by - ay), n = Math.floor(len / 5);
+      for (let k = 1; k < n; k++) {
+        const x = Math.round(ax + (bx - ax) * k / n), y = Math.round(ay + (by - ay) * k / n);
+        g.fillStyle = '#1a1423'; g.fillRect(x - 1, y - 1, 3, 3);
+        g.fillStyle = '#fff3c4'; g.fillRect(x, y, 1, 1);
+      }
+    }
+    owBg = c;
+    return c;
+  }
+
+  const owLerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  // Onde está o viajante e em que etapa está a animação: 'moving' | 'choose' | 'done'.
+  function owWhere(q, now) {
+    const to = q.to, end = OW.nodes[to];
+    if (q.view || to === 0) return { pos: end, stage: 'done' };
+    const start = OW.nodes[to - 1], hut = OW.huts[to];
+    if (!q.t0) q.t0 = now;
+    if (hut && !s.detours[to] && !q.final) {
+      const t = Math.min(1, (now - q.t0) / 1300);
+      return { pos: owLerp(start, hut, t), stage: t < 1 ? 'moving' : (s.pending && s.pending.type === 'detour' ? 'choose' : 'moving') };
+    }
+    if (hut && !q.final) {
+      if (!q.t1) q.t1 = now;
+      const t = Math.min(1, (now - q.t1) / 1300);
+      return { pos: owLerp(hut, end, t), stage: t < 1 ? 'moving' : 'done' };
+    }
+    const t = Math.min(1, (now - q.t0) / 1800);
+    return { pos: owLerp(start, end, t), stage: t < 1 ? 'moving' : 'done' };
+  }
+
+  function owLabel(text, x, y, color) {
+    og.save();
+    og.setTransform(1, 0, 0, 1, 0, 0);
+    og.font = '14px "Press Start 2P", monospace';
+    og.textAlign = 'center'; og.textBaseline = 'middle';
+    const w = og.measureText(text).width + 10;
+    const X = Math.max(w / 2 + 2, Math.min(OWW * 2 - w / 2 - 2, x * 2));
+    og.fillStyle = 'rgba(18,14,28,.85)'; og.fillRect(Math.round(X - w / 2), Math.round(y * 2 - 12), Math.round(w), 24);
+    og.fillStyle = color;
+    og.fillText(text, Math.round(X), Math.round(y * 2));
+    og.restore();
+  }
+  function owSprite(name, x, y, o = {}) {
+    const img = sprite(name, o.frame || 0), k = img.k || 1;
+    const w = img.width / k, h = img.height / k;
+    og.save();
+    og.globalAlpha = o.alpha == null ? 1 : o.alpha;
+    const dx = Math.round(x - w / 2), dy = Math.round(y - h);
+    if (o.flip) { og.translate(dx + w, dy); og.scale(-1, 1); og.drawImage(img, 0, 0, w, h); }
+    else og.drawImage(img, dx, dy, w, h);
+    og.restore();
+  }
+
+  function owRender(now) {
+    const q = queue[0];
+    if (!q || q.type !== 'overworld' || !s) return;
+    og.setTransform(2, 0, 0, 2, 0, 0);
+    og.imageSmoothingEnabled = false;
+    og.drawImage(owBase(), 0, 0);
+    const at = owWhere(q, now);
+    const reached = q.view ? s.phase : q.to;
+    const blink = Math.floor(now / 350) % 2;
+    // Casinhas bônus: vermelha = ainda não, verde = visitada, cinza = passou direto.
+    for (const [spot, [x, y]] of Object.entries(OW.huts)) {
+      const d = s.detours[spot];
+      const roof = d === 'visit' ? '#2f9e44' : d === 'skip' ? '#6b6f7a' : '#d6303c';
+      og.fillStyle = '#1a1423'; og.fillRect(x - 6, y - 5, 13, 7); og.fillRect(x - 5, y - 9, 11, 5);
+      og.fillStyle = '#f4f1e8'; og.fillRect(x - 5, y - 4, 11, 5);
+      og.fillStyle = roof; og.fillRect(x - 4, y - 8, 9, 4); og.fillRect(x - 6, y - 5, 13, 1);
+      og.fillStyle = '#7a4f2e'; og.fillRect(x - 1, y - 2, 3, 3);
+      if (d) owLabel(d === 'visit' ? '✓' : '×', x, y - 14, d === 'visit' ? '#5dfc8a' : '#b9bcc4');
+    }
+    // Fases: círculo dourado = pela frente, bandeira = já passou, Miami = castelo.
+    OW.nodes.forEach(([x, y, name, lx, ly], i) => {
+      const done = i < reached, here = i === reached;
+      if (i === 5) {
+        og.fillStyle = '#1a1423'; og.fillRect(x - 8, y - 12, 17, 14);
+        og.fillStyle = '#f7cf3d'; og.fillRect(x - 7, y - 11, 15, 12);
+        og.fillStyle = '#1a1423'; for (let k = -7; k <= 7; k += 4) og.fillRect(x + k, y - 13, 2, 2);
+        og.fillRect(x - 1, y - 5, 3, 6);
+      } else {
+        og.fillStyle = '#1a1423'; og.beginPath(); og.arc(x, y, 6, 0, Math.PI * 2); og.fill();
+        og.fillStyle = done ? '#4a6fb5' : here && blink ? '#ffffff' : '#f7cf3d';
+        og.beginPath(); og.arc(x, y, 5, 0, Math.PI * 2); og.fill();
+        if (done) {
+          og.fillStyle = '#1a1423'; og.fillRect(x, y - 15, 1, 12);
+          og.fillStyle = '#d6303c'; og.fillRect(x + 1, y - 15, 6, 4);
+        }
+      }
+      owLabel(name, x + lx, y + ly, done ? '#9fd3ff' : '#f7cf3d');
+    });
+    // O viajante: pangaré nas fases de estrada, jatinho nos voos.
+    const [x, y] = at.pos;
+    const bob = at.stage === 'moving' ? Math.floor(now / 120) % 2 : 0;
+    const flying = q.to >= 4 || (q.view && s.phase >= 4);
+    const prev = q.to > 0 ? OW.nodes[q.to - 1] : OW.nodes[0];
+    const flip = x < prev[0] || (q.view || q.to === 0);
+    if (flying) owSprite('jato', x, y + 2 - bob, { flip });
+    else {
+      og.fillStyle = 'rgba(0,0,0,.3)'; og.fillRect(Math.round(x - 7), Math.round(y), 14, 2);
+      owSprite('cavalo', x, y + 1 - bob, { flip });
+      owSprite('senador', x + (flip ? 3 : -3), y - 6 - bob, { flip });
+    }
+    // O Fantasma do Comunismo persegue a família pelo mapa (mais visível com Paranoia alta).
+    owSprite('fantasma', x + 22 + Math.sin(now / 500) * 6, y - 14 + Math.sin(now / 300) * 3, { alpha: 0.35 + s.paranoia / 200 });
+    // Nuvens.
+    og.fillStyle = 'rgba(255,255,255,.85)';
+    for (let i = 0; i < 3; i++) {
+      const cx = ((now / (90 + i * 30) + i * 120) % (OWW + 60)) - 30, cy = 30 + i * 52;
+      og.fillRect(Math.round(cx), cy, 18, 4); og.fillRect(Math.round(cx) + 4, cy - 3, 9, 3);
+    }
+    if (at.stage === 'moving' && !owSound) { owSound = true; SFX.travel(); }
+    if (at.stage !== 'moving') owSound = false;
+    if (at.stage !== owState) owUpdate();
+  }
+
+  // Textos e botões do mapa-múndi; refeitos só quando a etapa muda.
+  function owUpdate(force) {
+    const q = queue[0];
+    if (!q || q.type !== 'overworld') return;
+    const at = owWhere(q, performance.now());
+    if (!force && at.stage === owState) return;
+    owState = at.stage;
+    const ph = C.PHASES[Math.min(q.to, 4)];
+    const d = C.DETOURS[q.to];
+    $('owTag').textContent = q.final ? 'MAPA DA FUGA · ÚLTIMO VOO' : `MAPA DA FUGA · ${q.view ? 'ONDE ESTAMOS' : `FASE ${q.to + 1} DE 5`}`;
+    $('owStats').textContent = `🕒 ${C.clock(s.hours)} · R$ ${fmt(s.reais)} mil · US$ ${fmt(s.usd)} mil · Cerco ${Math.round(s.cerco)} · Paranoia ${Math.round(s.paranoia)}`;
+    const box = $('owChoices');
+    box.textContent = '';
+    if (at.stage === 'choose') {
+      $('owTitle').textContent = d.name;
+      $('owText').textContent = d.text;
+      for (const a of C.actions(s)) box.appendChild(button({ ...a, detail: '' }, () => play(a.id), a.id === 'detour:visit' ? 'suggested' : ''));
+      return;
+    }
+    const note = d && s.detours[q.to] ? (s.log.find(l => l.text.includes(d.name)) || {}).text : '';
+    $('owTitle').textContent = q.final ? 'RUMO A MIAMI!' : q.to === 0 ? 'A FUGA COMEÇA EM BRASÍLIA' : `PRÓXIMA PARADA: ${ph.name.toUpperCase()}`;
+    $('owText').textContent = note || (q.final ? 'O Gulfstream cruza o Caribe. Lá embaixo, um helicóptero de TV já espera.'
+      : q.view ? `Fase ${s.phase + 1} de 5: ${ph.name}. Bandeira vermelha = fase vencida; casinha = parada bônus no caminho.`
+      : `${ph.subtitle}. Bandeira vermelha = fase vencida; casinha no caminho = parada bônus.`);
+    if (at.stage === 'moving') {
+      box.appendChild(button({ label: '▶▶ Pular a caminhada' }, () => { q.t0 = q.t1 = 1; owUpdate(true); }));
+      return;
+    }
+    const label = q.final ? 'VER O POUSO EM MIAMI' : q.view ? 'VOLTAR À FUGA' : `ENTRAR NA FASE: ${ph.name.toUpperCase()}`;
+    box.appendChild(button({ label }, () => { queue.shift(); owState = ''; refresh(); }, 'ok'));
   }
 
   /* ---------- final ---------- */
@@ -1318,6 +1544,8 @@
 
   function goTitle() {
     hideModal();
+    queue = [];
+    $('overworld').classList.add('hidden');
     tpMode = false;
     $('game').classList.add('hidden');
     $('end').classList.add('hidden');
@@ -1333,6 +1561,7 @@
       tag: 'MENU', title: 'PAUSA NA FUGA', text: 'O relógio só anda quando você age.', art: ['senador'],
       choices: [
         { label: 'CONTINUAR A FUGA', cls: 'ok', onClick: () => refresh() },
+        { label: '🗺 Ver o mapa da fuga', onClick: () => { queue.unshift({ type: 'overworld', to: s.phase, view: true }); refresh(); } },
         { label: 'Voltar à tela principal', detail: 'A fuga em andamento será perdida.', onClick: goTitle },
       ],
     });
