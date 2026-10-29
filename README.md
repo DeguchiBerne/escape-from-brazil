@@ -1,7 +1,6 @@
 # Escape from Brazil: The Phantom of Communism
 
-Jogo satírico de logística de fuga em pixel art 16 bits (Canvas 2D), para web e Android (shell WebView, como o VolleySim).
-Projeto independente do VolleySim e do Volleyball Manager 2027.
+Jogo satírico de logística de fuga em pixel art 16 bits (Canvas 2D), para web e Android (shell WebView)
 
 - Documento de design: https://claude.ai/artifact/9nXsJNFqqjcufseL8vzin4
 - Meta: versão web jogável no itch.io ao fim de 2026-10-30; Android em 2026-10-31.
@@ -29,17 +28,6 @@ Obra de ficção e paródia. Todos os nomes são fictícios (parecidos, nunca ig
 - Ações do local só aparecem quando a família chega.
 - Modais sempre centralizados.
 - 🔍 Zoom 2× do mapa com arrasto (padrão no celular); na caminhada a câmera segue a família.
-
-## Versão 1.1.0
-
-A versão fica em `core.js` (`VERSION`), aparece na tela inicial e o Android lê dela (`versionName` 1.1.0, `versionCode` 10100).
-
-- Painel **TRÁFICO DE INFLUÊNCIA** (antes "Missão") perto do fim da tela: dicas e o ★ próximo passo só aparecem ao tocar.
-- Poderes sobre o mapa: 📱 Fake news à esquerda, 👻 Teleporte à direita.
-- "ESPERAR 72H" (brincadeira: são só duas).
-- Cerco e Paranoia em linhas próprias e maiores; dinheiro menor.
-- ☰ MENU no jogo para voltar à tela principal; FECHAR O JOGO na tela principal (aviso e o Xande: "ACABOU.").
-- Nomes fictícios mais distantes dos reais (veja `NAMES` em `core.js`).
 
 ## Dificuldade
 
