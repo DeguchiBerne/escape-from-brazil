@@ -943,6 +943,7 @@
     updateLog();
     if (s.ended && !queue.length) {
       hideModal();
+      $('overworld').classList.add('hidden');  // o mapa do último voo é uma camada fixa por cima de tudo
       setTimeout(showEnd, walk ? 1200 : 400);
       return;
     }

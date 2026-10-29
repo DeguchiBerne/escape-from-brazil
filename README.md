@@ -12,6 +12,10 @@ Obra de ficção e paródia. Todos os nomes são fictícios (parecidos, nunca ig
 - **Navegador:** https://deguchiberne.github.io/escape-from-brazil/ (ou abra `index.html` direto do disco; não há build nem npm).
 - **Android:** baixe o APK em Releases, ou gere com `cd android; .\gradlew.bat :app:assembleDebug` (precisa de `JAVA_HOME` apontando para o JBR do Android Studio e de `android/local.properties` com `sdk.dir`). Se o Gradle pegar outro Java (por exemplo, o JRE de uma extensão do VS Code, sem jlink), acrescente `"-Porg.gradle.java.installations.auto-detect=false" "-Porg.gradle.java.installations.fromEnv=JAVA_HOME"`. O build copia o jogo web para os assets; o app é só uma casca WebView, offline.
 
+## Versão 2.0.2: correção
+
+- Ao vencer, o botão "VER O POUSO EM MIAMI" do mapa-múndi não abria a cena final (o mapa ficava por cima). Corrigido; o teste de navegador agora força uma vitória e confere a cena de Miami.
+
 ## Versão 2.0.1: capa e ícone
 
 - A tela inicial mostra a capa do jogo (`efb.jpg`; a cópia leve para web é `icons/capa.jpg`).

@@ -137,7 +137,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 900; i++) {
     if (!(await ev("document.getElementById('end').classList.contains('hidden')"))) break;
     const st = await ev('({ ended: !!EscapeGame.state().ended, phase: EscapeGame.state().phase, modal: !document.getElementById("modal").classList.contains("hidden") })');
-    if (st.ended) { if (st.modal) await ev("document.querySelector('#modalChoices button').click()"); await sleep(600); continue; }
+    if (st.ended) {
+      if (st.modal) await ev("document.querySelector('#modalChoices button').click()");
+      else await ev("!document.getElementById('overworld').classList.contains('hidden') && document.querySelector('#owChoices button').click()");
+      await sleep(600); continue;
+    }
     const tag = await ev("document.getElementById('modal').classList.contains('hidden') ? '' : document.getElementById('modalTag').textContent");
     if (!shotTags.has('hut') && (await ev("!document.getElementById('overworld').classList.contains('hidden') && document.querySelectorAll('#owChoices button').length === 2"))) {
       shotTags.add('hut'); await shot('5e-casinha-bonus.png');
@@ -182,6 +186,30 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const ending = await ev('EscapeGame.state().ended.type');
   await sleep(800);
   await shot('6-fim.png');
+
+  // Vitória forçada: o último voo no mapa-múndi precisa abrir a cena de Miami (bug da 2.0.0).
+  await ev("document.getElementById('replayBtn').click()");
+  for (let i = 0; i < 12; i++) {
+    if (!(await ev("document.getElementById('overworld').classList.contains('hidden')"))) await ev("document.querySelector('#owChoices button').click()");
+    else if (!(await ev("document.getElementById('modal').classList.contains('hidden')"))) await ev("document.querySelector('#modalChoices button').click()");
+    else break;
+    await sleep(150);
+  }
+  await ev("(() => { const s = EscapeGame.state(); s.phase = 4; s.node = 'pista'; s.fueled = true; s.pending = null; EscapeGame.play('exit:0'); })()");
+  assert.equal(await ev('EscapeGame.state().ended && EscapeGame.state().ended.type'), 'won', 'a vitória forçada não ganhou');
+  for (let i = 0; i < 10 && (await ev("document.getElementById('end').classList.contains('hidden')")); i++) {
+    if (!(await ev("document.getElementById('modal').classList.contains('hidden')"))) await ev("document.querySelector('#modalChoices button').click()");
+    else if (!(await ev("document.getElementById('overworld').classList.contains('hidden')"))) {
+      if (!shotTags.has('final')) { shotTags.add('final'); await sleep(2000); await shot('6a-ultimo-voo.png'); }
+      await ev("document.querySelector('#owChoices button').click()");
+    }
+    await sleep(700);
+  }
+  assert(shotTags.has('final'), 'o mapa do último voo não apareceu');
+  assert.equal(await ev("document.getElementById('end').classList.contains('hidden')"), false, 'VER O POUSO EM MIAMI não abriu a tela final');
+  assert.equal(await ev("document.getElementById('overworld').classList.contains('hidden')"), true, 'o mapa-múndi ficou por cima da tela final');
+  await sleep(800);
+  await shot('6b-miami.png');
 
   await cmd('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
   await ev("document.getElementById('replayBtn').click(); document.querySelector('#modalChoices button').click()");
