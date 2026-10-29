@@ -25,7 +25,8 @@ button { font: inherit; color: inherit; }
 
 /* Título */
 #title, #end { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding-top: 32px; }
-#titleArt { width: min(480px, 100%); image-rendering: pixelated; }
+#cover { width: min(420px, 100%, 45vh); height: auto; border-radius: 10px; box-shadow: 0 6px 0 rgba(0,0,0,.45); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 h1 { font-family: var(--pixel); font-size: clamp(16px, 5vw, 28px); color: var(--gold); margin: 8px 0 0; text-shadow: 3px 3px 0 var(--red); letter-spacing: 1px; }
 h2 { font-family: var(--pixel); font-size: clamp(9px, 2.6vw, 13px); color: var(--red); margin: 0; }
 .pitch { max-width: 520px; font-size: 22px; }

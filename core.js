@@ -14,7 +14,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const VERSION = '2.0.0';  // única fonte da versão: o Android (build.gradle.kts) lê daqui
+  const VERSION = '2.0.1';  // única fonte da versão: o Android (build.gradle.kts) lê daqui
   const BAG = 100;          // R$ mil por mala de reais
   const USD_BAG = 400;      // R$ mil (equivalente) por mala de dólares
   const DEADLINE = 17;      // hora 0 = seg 26/10 18:00; prazo do STF = ter 27/10 11:00

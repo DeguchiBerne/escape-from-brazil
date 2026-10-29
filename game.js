@@ -1336,33 +1336,6 @@
     for (const t of stats) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }
   }
 
-  function titleArt() {
-    const c = $('titleArt'), g = c.getContext('2d');
-    c.width = 320; c.height = 144;
-    g.setTransform(2, 0, 0, 2, 0, 0);
-    g.imageSmoothingEnabled = false;
-    g.fillStyle = '#1f1830';
-    g.fillRect(0, 0, 160, 72);
-    M.diamond(g, 80, 40, '#5aa548');
-    for (let i = 0; i < 6; i++) M.diamond(g, 32 + i * 16, 48 + (i % 2) * 8, i % 2 ? '#4c9140' : '#6fbb5b');
-    const put2 = (name, x, y, a = 1, flip = false) => {
-      const img = sprite(name), w = img.width / img.k, h = img.height / img.k;
-      g.save(); g.globalAlpha = a;
-      if (flip) { g.translate(x + w, y); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, x, y, w, h);
-      g.restore();
-    };
-    put2('fantasmaFlavio', 4, 26, 0.95);
-    put2('cavalo', 30, 49);
-    put2('senador', 33, 36);
-    put2('esposa', 58, 47);
-    put2('filha', 74, 50);
-    put2('filha2', 88, 50);
-    put2('mala', 104, 56);
-    put2('policial', 136, 46, 1, true);
-    put2('fantasma', 120, 8, 0.85);
-    put2('mamadeira', 112, 10);
-  }
-
   /* ---------- início ---------- */
   /* Menu de dificuldade: cada nível tem um personagem que dá o recado. */
   const SAY = {
@@ -1600,7 +1573,6 @@
   $('musicBtn').textContent = Music.on ? '♪ ON' : '♪ OFF';
   setInterval(() => { bubbleTick++; if (s && !$('game').classList.contains('hidden')) updateBubbles(); }, 3800);
 
-  titleArt();
   requestAnimationFrame(loop);
 
   window.EscapeGame = { start, play, state: () => s, queue: () => queue, walking: () => !!walk };
