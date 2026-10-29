@@ -17,7 +17,8 @@
   let queue = [];          // modais na fila: cena do Amores, resultados, intros de fase
   let party = [];          // [{x, y, dir}] senador, esposa, filha, filha2
   let walk = null;         // animação de caminhada pela estrada
-  let effects = [];        // teletransporte, fake news, dinheiro flutuando, Carlitos
+  let arrived = false;     // a caminhada acabou neste quadro: mostra os botões do local
+  let effects = [];        // teletransporte, fake news, dinheiro flutuando, Charlitos
   let tpMode = false;
   let bubbleTick = 0;
   let pendingArt = null;
@@ -159,6 +160,7 @@
       const [x, y] = walk.pts[end];
       party.forEach((m, i) => { m.x = x + IDLE[i][0]; m.y = y + IDLE[i][1]; });
       walk = null;
+      arrived = true;
       return false;
     }
     return true;
@@ -336,7 +338,7 @@
       list.push({ y: w.y, draw: () => put(sprite('fantasma'), w.x, w.y - 4 + Math.sin(now / 300 + i) * 2, { alpha: 0.7, flip: w.dir < 0 }) });
     }
 
-    // A família. Depois de Brasília o Flaviano vai montado no Dark Horse.
+    // A família. Depois de Brasília o Fluvio vai montado no Dark Horse.
     const tp = effects.find(e => e.type === 'teleport');
     const hidden = tp && now - tp.t0 < 450;
     if (!hidden) {
@@ -420,7 +422,11 @@
   }
 
   function loop(now) {
-    if (!$('game').classList.contains('hidden')) render(now);
+    if (!$('game').classList.contains('hidden')) {
+      render(now);
+      if (zoomed && walk && party[0]) centerOn(party[0].x, party[0].y);
+      if (arrived) { arrived = false; updateActions(); updateMission(); updateHud(); }
+    }
     if (!$('end').classList.contains('hidden')) endScene(now);
     requestAnimationFrame(loop);
   }
@@ -453,6 +459,7 @@
 
   map.addEventListener('click', e => {
     if (!s) return;
+    if (dragged) { dragged = false; return; }
     const rect = map.getBoundingClientRect();
     const x = (e.clientX - rect.left) * W / rect.width, y = (e.clientY - rect.top) * H / rect.height;
     const person = whoAt(x, y);
@@ -468,7 +475,8 @@
     if (!best || best === s.node) return;
     const ids = C.actions(s).filter(a => !a.disabled).map(a => a.id);
     const id = tpMode ? `tp:${best}` : `go:${best}`;
-    if (ids.includes(id)) play(id);
+    if (!ids.includes(id)) return;
+    if (tpMode) play(id); else use(C.actions(s).find(a => a.id === id));
   });
 
   /* ---------- HUD, rótulos, balões ---------- */
@@ -583,7 +591,11 @@
     t.className = 'title';
     t.textContent = a.label;
     b.appendChild(t);
-    if (a.cost) b.appendChild(chips(a.cost));
+    if (a.cost || a.disabled) {
+      const c = chips(a.cost);
+      if (a.disabled && a.reason) { const i = document.createElement('i'); i.className = 'lock'; i.textContent = `🔒 ${a.reason}`; c.appendChild(i); }
+      b.appendChild(c);
+    }
     const extra = a.disabled ? a.reason : a.detail;
     if (extra) {
       const sm = document.createElement('small');
@@ -610,9 +622,9 @@
     $('missionBtn').querySelector('span').textContent = missionOpen ? '▾ esconder' : '▸ ver dicas';
     const next = $('nextBox');
     next.textContent = '';
-    if (!s.pending && !s.ended && !tpMode) {
+    if (!s.pending && !s.ended && !tpMode && !walk) {
       const list = C.actions(s), sa = list.find(a => a.id === C.suggest(s));
-      if (sa && sa.kind !== 'quit') next.appendChild(button({ ...sa, label: `★ PRÓXIMO PASSO: ${sa.kind === 'go' ? 'ir para ' + sa.label : sa.label}` }, () => play(sa.id), 'next'));
+      if (sa && sa.kind !== 'quit') next.appendChild(button({ ...sa, label: `★ PRÓXIMO PASSO: ${sa.kind === 'go' ? 'ir para ' + sa.label : sa.label}` }, () => use(sa), 'next'));
     }
     const ul = $('goals');
     ul.textContent = '';
@@ -643,8 +655,9 @@
       return;
     }
 
+    if (walk) section(box, `A CAMINHO: ${ph.nodes[s.node].name.toUpperCase()}...`);
     const groups = [
-      [`AQUI: ${ph.nodes[s.node].name.toUpperCase()}`, a => a.group === 'exit' || a.group === 'here'],
+      [`AQUI: ${ph.nodes[s.node].name.toUpperCase()}`, a => !walk && (a.group === 'exit' || a.group === 'here')],
       ['ANDAR (OU TOQUE NO MAPA) · VERMELHO = BLITZ', a => a.group === 'move'],
       ['TELEFONE', a => a.group === 'phone'],
     ];
@@ -657,13 +670,13 @@
       for (const a of items) {
         let cls = a.kind === 'exit' ? 'exit' : a.group === 'power' ? 'power' : a.cops ? 'blitz' : '';
         if (a.id === sug) cls += ' suggested';
-        grid.appendChild(button(a, () => play(a.id), cls));
+        grid.appendChild(button(a, () => use(a), cls));
       }
       box.appendChild(grid);
     }
     const other = document.createElement('div');
     other.className = 'grid other';
-    for (const a of list.filter(x => x.group === 'other')) other.appendChild(button(a, () => play(a.id), a.kind === 'quit' ? 'quiet' : ''));
+    for (const a of list.filter(x => x.group === 'other')) other.appendChild(button(a, () => use(a), a.kind === 'quit' ? 'quiet' : ''));
     box.appendChild(other);
   }
 
@@ -795,7 +808,7 @@
       const q = queue[0];
       if (q.type === 'moraes') {
         showModal({
-          tag: 'STF · BRASILIA · SEGUNDA, 18h', title: 'ALEXANDRINO DE AMORES, O XANDAO',
+          tag: 'STF · BRASILIA · SEGUNDA, 18h', title: 'ALEJANDRO DE AMORES, O XANDE',
           text: '— Senador, os passaportes. Amanhã, 11h. Sem atraso. — Claro, ministro… (no fundo da sala, o Fantasma do Comunismo ri baixinho)',
           fact: C.FACTS.moraes, art: ['moraes', 'senador', 'fantasma'],
           choices: [{ label: 'ENGOLIR EM SECO E COMEÇAR A FUGA', onClick: () => { queue.shift(); refresh(); } }],
@@ -811,7 +824,7 @@
         });
       } else if (q.type === 'milei') {
         showModal({
-          tag: 'PUERTO IGUAZU · ARGENTINA', title: 'XAVIER MILETO',
+          tag: 'PUERTO IGUAZU · ARGENTINA', title: 'CHAVO MILEY',
           text: `Ele surge de jaqueta de couro, cabelo em pé e motosserra ligada. Olha o cavalo de cima a baixo: — "${C.MILEI}" (HIC!, faz o pangaré, apavorado.)`,
           fact: C.FACTS.milei, art: ['milei', 'cavalo'],
           choices: [{ label: 'SEGURAR AS RÉDEAS COM FORÇA', onClick: () => { queue.shift(); refresh(); } }],
@@ -850,7 +863,7 @@
         const kit = p.item === 'kit';
         showModal({
           tag: '☭ ATAQUE DO FANTASMA', title: kit ? 'O Fantasma arremessa um KIT GAY!' : 'O Fantasma arremessa uma MAMADEIRA DE PIROCA!',
-          text: kit ? 'Se acertar, quem aparece é o irmão Carlitos, brilhando de purpurina e declamando poesia.' : 'Se acertar, uma hora explicando para as filhas o que é aquilo.',
+          text: kit ? 'Se acertar, quem aparece é o irmão Charlitos, brilhando de purpurina e declamando poesia.' : 'Se acertar, uma hora explicando para as filhas o que é aquilo.',
           fact: 'As duas "armas" são fake news famosas da eleição de 2018; aqui o Fantasma devolve o presente.',
           art: ['fantasma', kit ? 'kit' : 'mamadeira'], choices,
         });
@@ -875,6 +888,7 @@
         effects.push({ type: 'teleport', t0: now, dur: 1200, from: nodeCenter(s.phase, e.from), to: nodeCenter(s.phase, e.to) });
         walk = null;
         placeParty(e.to);
+        if (zoomed) requestAnimationFrame(() => centerOn(party[0].x, party[0].y));
         SFX.teleport();
       } else if (e.type === 'fake') {
         effects.push({ type: 'fake', t0: now, dur: 4000 });
@@ -895,6 +909,7 @@
         intros.push({ type: 'intro', phase: e.phase });
         walk = null;
         placeParty(C.PHASES[e.phase].start);
+        if (zoomed) requestAnimationFrame(() => centerOn(party[0].x, party[0].y));
         SFX.card();
       } else if (e.type === 'end') {
         (e.ending === 'won' ? SFX.won : SFX.lost)();
@@ -1082,7 +1097,7 @@
     const stats = [
       `Tempo de fuga: ${Math.round(s.hours)}h (${C.clock(s.hours)})`,
       `Dinheiro no bolso: R$ ${fmt(s.reais)} mil + US$ ${fmt(s.usd)} mil`,
-      `Deixado para trás: R$ ${fmt(s.lost)} mil · "guardado" por Michaela: R$ ${fmt(s.stolen)} mil`,
+      `Deixado para trás: R$ ${fmt(s.lost)} mil · "guardado" por Micheki: R$ ${fmt(s.stolen)} mil`,
       `Dificuldade: ${C.LEVELS[s.level].name}`,
       `Dados: ${s.stats.rolls} rolados, ${s.stats.fails} falhas, ${s.stats.rigged} "não auditados"`,
       `Ataques do Fantasma: ${s.stats.attacks} · força final ${s.ghostPower}`,
@@ -1173,8 +1188,128 @@
     const v = parseInt($('seedInput').value, 10);
     start(Number.isFinite(v) && v > 0 ? v : 1 + Math.floor(Math.random() * 999999), level);
   });
-  $('pFake').addEventListener('click', () => play('fake'));
-  $('pTp').addEventListener('click', () => { tpMode = !tpMode; refresh(); });
+  /* ---------- primeira vez de cada botão: explica e pede confirmação ---------- */
+  const EXPLAIN = {
+    go: 'Anda pela estrada até este lugar. Estrada vermelha tem blitz: passar por ela pede o dado.',
+    take: 'Pega o dinheiro vivo escondido aqui. Cada R$ 100 mil ocupa uma mala do veículo.',
+    call: 'Liga para um contato. Se ele topar, passa a ajudar na fuga.',
+    send: 'Manda o ex-assessor buscar um esconderijo longe; o dinheiro chega na fazenda, sem ocupar o carro.',
+    exit: 'Sai desta fase rumo à próxima. Malas que não cabem ficam para trás.',
+    exchange: 'Troca reais por dólares: dólar ocupa 4× menos malas.', hide: 'Fica escondido para o Cerco esfriar.',
+    rest: 'Descansa para baixar a Paranoia.', visit: 'Visita o Pai. Alguém aproveita para levar as joias.',
+    brother: 'Pede ajuda ao irmão caçula. Pode distrair a imprensa... ou piorar tudo.',
+    coach: 'Ouve o coach. Baixa a Paranoia, mas ele faz live com você ao fundo.',
+    vorcaro: 'Pede dinheiro ao "irmão". Ele sempre manda só a metade.', milei: 'Pede ajuda ao presidente da motosserra.',
+    fuel: 'Abastece o jato. Sem combustível, não decola.', fake: 'Espalha uma fake news para despistar a PF.',
+    wait: 'Deixa o tempo passar. O Cerco continua subindo.', quit: 'Desiste da fuga e encerra a partida.',
+  };
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem('efb.seen') || '{}') || {}; } catch (e) { seen = {}; }
+  const seenKey = a => (a.kind === 'call' || a.kind === 'exit' ? a.id : a.kind);
+  function remember(key) {
+    seen[key] = 1;
+    try { localStorage.setItem('efb.seen', JSON.stringify(seen)); } catch (e) { /* sem armazenamento */ }
+  }
+  function explainFirst(key, info, run) {
+    if (seen[key]) { run(); return; }
+    showModal({
+      tag: '❓ PRIMEIRA VEZ', title: info.title, text: info.text, art: info.art, fx: info.cost ? chips(info.cost) : null,
+      fact: 'Depois desta vez o botão age direto. Para rever o que ele faz, use o TUTORIAL.',
+      choices: [
+        { label: 'CONFIRMAR', cls: 'ok', onClick: () => { remember(key); hideModal(); run(); } },
+        { label: 'Cancelar', onClick: () => refresh() },
+      ],
+    });
+  }
+  function use(a) {
+    if (!a) return;
+    explainFirst(seenKey(a), { title: a.label, text: [EXPLAIN[a.kind], a.detail].filter(Boolean).join(' '), art: artFor(a), cost: a.cost }, () => play(a.id));
+  }
+
+  $('pFake').addEventListener('click', () => use(C.actions(s).find(a => a.id === 'fake')));
+  $('pTp').addEventListener('click', () => {
+    if (tpMode) { tpMode = false; refresh(); return; }
+    explainFirst('tp', {
+      title: 'Teletransporte do Funcionário Fantasma',
+      text: 'Escolha qualquer lugar da fase (fica verde) e vá na hora: sem tempo, sem rastro, sem blitz, sem dado. As cargas são poucas.',
+      art: ['fantasmaFlavio', 'cedula'], cost: { h: 0 },
+    }, () => { tpMode = true; refresh(); });
+  });
+
+  /* ---------- tutorial ---------- */
+  const TUTORIAL = [
+    ['O OBJETIVO', 'Levar a família de Brasília até Miami em 5 fases, com o máximo de dinheiro vivo, antes que o <b>Cerco</b> chegue a 100 ou o tempo acabe (quinta, meia-noite).'],
+    ['CERCO E PARANOIA', '<b>Cerco</b> é o quanto a PF está perto: sobe com o tempo, com blitz e com erros. <b>Paranoia</b> é o Fantasma do Comunismo na sua cabeça: com ela alta surgem ameaças falsas e o Fantasma ataca mais.'],
+    ['DINHEIRO E MALAS', 'Dinheiro vivo ocupa malas. Cada veículo leva um número de malas; o que não cabe fica para trás. Dólar ocupa menos espaço.'],
+    ['O DADO', 'Ações arriscadas rolam 1d20 contra uma <b>CD</b> (a etiqueta 🎲). 20 sempre passa, 1 sempre falha. Falhar não trava o jogo: a ação acontece com um preço maior. Na falha, <b>"Esse dado não é auditado"</b> deixa escolher o número, mas a Paranoia sobe e o Fantasma ganha força.'],
+    ['AS ETIQUETAS', 'Cada botão mostra o resumo: tempo (1h), dado (🎲 CD), blitz (🚓), Cerco, Paranoia, preço e ganho. 🔒 explica por que um botão está travado.'],
+    ['♪ ON / OFF', 'Liga e desliga a música.'],
+    ['? TUTORIAL', 'Abre esta ajuda.'],
+    ['☰ MENU', 'Pausa e permite voltar à tela principal (a fuga em andamento é perdida).'],
+    ['📱 FAKE NEWS', 'Canto esquerdo do mapa. Rola o dado: se der certo, o Cerco cai muito; também faz uma ameaça sumir na hora.'],
+    ['👻 TELEPORTE', 'Canto direito do mapa. Escolha um lugar verde e vá na hora, sem tempo, rastro, blitz ou dado.'],
+    ['🔍 ZOOM', 'Canto inferior do mapa. Deixa o mapa 2× maior; arraste com o dedo (ou o mouse) para olhar em volta. Na caminhada a câmera segue a família.'],
+    ['O MAPA', 'Toque num lugar que pisca para andar até ele (dourado = estrada livre, vermelho = blitz). Toque numa pessoa para saber quem é.'],
+    ['AQUI', 'Ações do lugar onde a família está. Aparecem quando ela chega.'],
+    ['ANDAR', 'Os lugares vizinhos. Estrada vermelha tem blitz e pede dado.'],
+    ['TELEFONE', 'Contatos que ajudam na fuga (escolta, ex-assessor, despachante, doleiro, piloto...).'],
+    ['ESPERAR 72H', 'Brincadeira: são só 2 horas. O Cerco continua subindo.'],
+    ['DESISTIR', 'Encerra a fuga: "fico para liderar a oposição".'],
+    ['TRÁFICO DE INFLUÊNCIA', 'Toque para abrir as dicas da fase e o ★ PRÓXIMO PASSO, uma sugestão segura que você pode tocar direto.'],
+    ['PRIMEIRA VEZ', 'Na primeira vez que você usa cada botão, o jogo explica o que ele faz e pede confirmação. Depois o botão age direto.'],
+  ];
+  $('tutorialBtn').addEventListener('click', () => {
+    if (!s) return;
+    const box = document.createElement('div');
+    box.className = 'tutorial';
+    for (const [h, p] of TUTORIAL) {
+      const t = document.createElement('h5'); t.textContent = h;
+      const d = document.createElement('p'); d.innerHTML = p;
+      box.append(t, d);
+    }
+    const close = button({ label: 'ENTENDI, VOLTAR À FUGA' }, () => refresh(), 'ok');
+    const reset = button({ label: 'Explicar os botões de novo na primeira vez' }, () => {
+      seen = {};
+      try { localStorage.removeItem('efb.seen'); } catch (e) { /* sem armazenamento */ }
+      toast('Pronto: cada botão volta a se explicar no primeiro uso.');
+    });
+    box.append(close, reset);
+    showModal({ tag: '? TUTORIAL', title: 'COMO FUGIR', text: 'Tudo o que cada parte da tela faz.', art: ['senador', 'cavalo', 'fantasma'], choices: [], extra: box });
+  });
+
+  /* ---------- zoom e arrasto do mapa ---------- */
+  const scroller = $('scroller');
+  let zoomed = window.innerWidth < 700, dragged = false;
+  try { const z = localStorage.getItem('efb.zoom'); if (z != null) zoomed = z === '1'; } catch (e) { /* sem armazenamento */ }
+  function centerOn(x, y) {
+    const w = $('world');
+    scroller.scrollLeft = (x / W) * w.clientWidth - scroller.clientWidth / 2;
+    scroller.scrollTop = (y / H) * w.clientHeight - scroller.clientHeight / 2;
+  }
+  function setZoom(on) {
+    zoomed = on;
+    $('stage').classList.toggle('zoomed', on);
+    $('zoomBtn').textContent = on ? '🔍 1×' : '🔍 2×';
+    try { localStorage.setItem('efb.zoom', on ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
+    if (on && s && party[0]) requestAnimationFrame(() => centerOn(party[0].x, party[0].y));
+  }
+  $('zoomBtn').addEventListener('click', () => setZoom(!zoomed));
+  // Toque arrasta com a rolagem nativa; o mouse arrasta por aqui.
+  let drag = null;
+  scroller.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || !zoomed) return;
+    drag = { x: e.clientX, y: e.clientY, l: scroller.scrollLeft, t: scroller.scrollTop };
+    dragged = false;
+  });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) dragged = true;
+    scroller.scrollLeft = drag.l - dx;
+    scroller.scrollTop = drag.t - dy;
+  });
+  window.addEventListener('pointerup', () => { drag = null; });
+  setZoom(zoomed);
   $('missionBtn').addEventListener('click', () => {
     missionOpen = !missionOpen;
     try { localStorage.setItem('efb.dicas', missionOpen ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
@@ -1193,7 +1328,7 @@
     window.scrollTo(0, 0);
   }
   $('menuBtn').addEventListener('click', () => {
-    if (!s || queue.length || s.pending) return;
+    if (!s) return;
     showModal({
       tag: 'MENU', title: 'PAUSA NA FUGA', text: 'O relógio só anda quando você age.', art: ['senador'],
       choices: [
@@ -1239,5 +1374,5 @@
   titleArt();
   requestAnimationFrame(loop);
 
-  window.EscapeGame = { start, play, state: () => s, queue: () => queue };
+  window.EscapeGame = { start, play, state: () => s, queue: () => queue, walking: () => !!walk };
 })();

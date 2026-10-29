@@ -116,7 +116,7 @@
       'krrkkrrkkrrkkrrk',
       '.kk..kk..kk..kk.',
     ],
-    // Fantasma do Flaviano (o "funcionário fantasma"): lençol branco com crachá.
+    // Fantasma do Fluvio (o "funcionário fantasma"): lençol branco com crachá.
     fantasmaFlavio: [
       '.....kkkkkk.....',
       '...kkwwwwwwkk...',

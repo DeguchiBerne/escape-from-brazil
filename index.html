@@ -35,10 +35,14 @@
 
     <section id="game" class="screen hidden">
       <header id="hud">
+        <div class="hudBtns">
+          <button id="musicBtn" class="mini" aria-label="Música"></button>
+          <button id="tutorialBtn" class="mini">? TUTORIAL</button>
+          <button id="menuBtn" class="mini">☰ MENU</button>
+        </div>
         <div class="row">
           <span id="clock"></span>
           <span id="phaseName"></span>
-          <span class="hudBtns"><button id="musicBtn" class="mini" aria-label="Música"></button><button id="menuBtn" class="mini">☰ MENU</button></span>
         </div>
         <div class="meters">
           <div class="meter"><span>CERCO</span><div class="bar"><i id="cercoBar"></i></div><b id="cercoVal"></b></div>
@@ -48,11 +52,14 @@
         <div class="row small"><span id="powers"></span></div>
       </header>
       <div id="stage">
+        <div id="scroller"><div id="world">
         <canvas id="map" width="320" height="208"></canvas>
         <div id="labels"></div>
+        <div id="bubbles"></div>
+        </div></div>
         <button id="pFake" class="power left" title="Fake news: &quot;estou em Dubai&quot;">📱<b>FAKE NEWS</b><i></i></button>
         <button id="pTp" class="power right" title="Teletransporte do Funcionário Fantasma">👻<b>TELEPORTE</b><i></i></button>
-        <div id="bubbles"></div>
+        <button id="zoomBtn" class="zoom" aria-label="Zoom do mapa">🔍 2×</button>
       </div>
       <div id="panel">
         <div id="actions"></div>
