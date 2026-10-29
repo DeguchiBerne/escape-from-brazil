@@ -59,7 +59,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await ev("document.querySelector('#modalChoices button').click()");
     await sleep(150);
   }
+  // Tráfico de influência começa fechado; abre para a captura e fecha de novo.
+  assert.equal(await ev("document.getElementById('missionBody').classList.contains('hidden')"), true, 'dicas deviam começar fechadas');
+  await ev("document.getElementById('missionBtn').click()");
   await shot('3-brasilia.png');
+  await ev("document.getElementById('mission').scrollIntoView()");
+  await shot('3c-dicas.png');
+  await ev('window.scrollTo(0, 0)');
+  await ev("document.getElementById('missionBtn').click()");
 
   // Clicar numa pessoa mostra quem é.
   const who = await ev(`(() => {
@@ -68,7 +75,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     document.getElementById('map').dispatchEvent(new MouseEvent('click', { clientX: r.left + (x + 12) * r.width / EscapeMaps.W, clientY: r.top + (y - 8) * r.height / EscapeMaps.H, bubbles: true }));
     return document.getElementById('toast').textContent;
   })()`);
-  assert(who.includes('Jairo'), 'clique na pessoa não identificou: ' + who);
+  assert(who.includes('Jairzão'), 'clique na pessoa não identificou: ' + who);
   await sleep(200);
   await shot('3a-quem-e.png');
   assert.equal(await ev('EscapeGame.state().node'), 'apto', 'identificar não devia mover');
@@ -92,7 +99,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       const b = [...document.querySelectorAll('#modalChoices button')].find(x => want && x.dataset.id === want) || document.querySelector('#modalChoices button');
       b.click(); return 'modal:' + b.dataset.id;
     }
-    const next = document.querySelector('#actions .next');
+    const next = document.querySelector('#nextBox .next');
     if (!next) return 'SEM-BOTAO ' + JSON.stringify({ pending: EscapeGame.state().pending, q: EscapeGame.queue().length, sug: EscapeCore.suggest(EscapeGame.state()), html: document.getElementById('actions').innerHTML.slice(0, 200) });
     next.click(); return next.dataset.id;
   })()`;
@@ -121,7 +128,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }
     if (!teleported && st.phase === 1 && !st.modal && !(await ev('EscapeGame.queue().length'))) {
       // Teletransporte: abre o modo, mostra os destinos em verde e salta para o curral.
-      await ev("[...document.querySelectorAll('#actions button')].find(b => b.textContent.startsWith('Teletransporte')).click()");
+      await ev("document.getElementById('pTp').click()");
       await shot('5b-teletransporte.png');
       await ev("EscapeGame.play('tp:curral')");
       await sleep(350);
@@ -144,8 +151,22 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await ev("document.getElementById('replayBtn').click(); document.querySelector('#modalChoices button').click()");
   await shot('7-desktop.png');
 
+  // Menu do jogo volta ao título; no título, fechar mostra o aviso e o Xandão.
+  await ev("document.querySelector('#modalChoices button') && !document.getElementById('modal').classList.contains('hidden') && document.querySelector('#modalChoices button').click()");
+  await sleep(300);
+  await ev("document.getElementById('menuBtn').click()");
+  await shot('8-menu.png');
+  await ev("[...document.querySelectorAll('#modalChoices button')].find(b => b.textContent.includes('tela principal')).click()");
+  assert.equal(await ev("document.getElementById('title').classList.contains('hidden')"), false, 'menu não voltou ao título');
+  await ev("document.getElementById('quitBtn').click()");
+  await shot('9a-aviso.png');
+  await ev("document.querySelector('#modalChoices button').click()");
+  await sleep(200);
+  await shot('9b-acabou.png');
+  assert(String(await ev("document.getElementById('modalTitle').textContent")).includes('ACABOU'), 'Xandão não disse ACABOU');
+
   assert.deepEqual(errors, [], 'erros de JavaScript na página');
-  console.log(`Navegador OK: níveis, quem é quem, Milê ${shotTags.has('milei') ? 'visto' : 'não alcançado'}, título, intro, clique no mapa, teletransporte, plantão ${tookCard ? 'visto' : 'não sorteado'}, final "${ending}". Capturas em tests/shots/.`);
+  console.log(`Navegador OK: níveis, quem é quem, Mileto ${shotTags.has('milei') ? 'visto' : 'não alcançado'}, título, intro, clique no mapa, teletransporte, plantão ${tookCard ? 'visto' : 'não sorteado'}, final "${ending}". Capturas em tests/shots/.`);
   ws.close();
   browser.kill();
 })().catch(e => { console.error(e); browser.kill(); process.exitCode = 1; });

@@ -13,9 +13,20 @@ Obra de ficção e paródia. Todos os nomes são fictícios (parecidos, nunca ig
 - **Navegador:** https://deguchiberne.github.io/escape-from-brazil/ (ou abra `index.html` direto do disco; não há build nem npm).
 - **Android:** baixe o APK em Releases, ou gere com `cd android; .\gradlew.bat :app:assembleDebug` (precisa de `JAVA_HOME` apontando para o JBR do Android Studio e de `android/local.properties` com `sdk.dir`). O build copia o jogo web para os assets; o app é só uma casca WebView, offline.
 
+## Versão 1.1.0
+
+A versão fica em `core.js` (`VERSION`), aparece na tela inicial e o Android lê dela (`versionName` 1.1.0, `versionCode` 10100).
+
+- Painel **TRÁFICO DE INFLUÊNCIA** (antes "Missão") perto do fim da tela: dicas e o ★ próximo passo só aparecem ao tocar.
+- Poderes sobre o mapa: 📱 Fake news à esquerda, 👻 Teleporte à direita.
+- "ESPERAR 72H" (brincadeira: são só duas).
+- Cerco e Paranoia em linhas próprias e maiores; dinheiro menor.
+- ☰ MENU no jogo para voltar à tela principal; FECHAR O JOGO na tela principal (aviso e o Xandão: "ACABOU.").
+- Nomes fictícios mais distantes dos reais (veja `NAMES` em `core.js`).
+
 ## Dificuldade
 
-- **FÁCIL** (o Flávinho: "Sempre trabalhei duro."): mais dinheiro, 3 fake news, 3 teletransportes, +3 em todo dado, Cerco 30% mais lento.
+- **FÁCIL** (o Flaviano: "Sempre trabalhei duro."): mais dinheiro, 3 fake news, 3 teletransportes, +3 em todo dado, Cerco 30% mais lento.
 - **MEIO FÁCIL** (o Pai, preso em casa: "Você é da família... tudo de mão beijada, talquei!"): +1 nos dados, Cerco 15% mais lento.
 - **MENOS FÁCIL** (o Xandão: "Sem imunidade."): o equilíbrio original.
 
@@ -31,7 +42,7 @@ Seguindo sempre o botão ★, o bot dos testes vence cerca de 90%, 70% e 50% das
 
 ## Arquivos
 
-- `core.js` — motor determinístico (UMD `EscapeCore`): fases, contatos, dinheiro vivo e malas, Cerco/Paranoia, ameaças reais e falsas (Fantasma), cartas de plantão, finais. Também os personagens do mapa (pai, irmão caçula, coach, ex-assessor, Milê na Argentina; todos com nomes fictícios em `NAMES`), os três níveis de dificuldade (`LEVELS`), os poderes (fake news, teletransporte do Fantasma Verde-e-Amarelo), o rastro e a ajuda ao jogador: `goals()` (missão da fase) e `suggest()` (próximo passo seguro, que os testes usam como bot). Mesma seed + mesmas ações = mesma partida.
+- `core.js` — motor determinístico (UMD `EscapeCore`): fases, contatos, dinheiro vivo e malas, Cerco/Paranoia, ameaças reais e falsas (Fantasma), cartas de plantão, finais. Também os personagens do mapa (pai, irmão caçula, coach, ex-assessor, Mileto na Argentina; todos com nomes fictícios em `NAMES`), os três níveis de dificuldade (`LEVELS`), os poderes (fake news, teletransporte do Fantasma Verde-e-Amarelo), o rastro e a ajuda ao jogador: `goals()` (missão da fase) e `suggest()` (próximo passo seguro, que os testes usam como bot). Mesma seed + mesmas ações = mesma partida.
 - `maps.js` — mapas isométricos 10×10 no estilo SimCity 2000: chão em cache, estradas em "L" que também são o caminho da família, prédios em caixas isométricas e um marco por fase.
 - `sprites.js` — sprites "chibi" no estilo RPG portátil (meia matriz espelhada) e objetos (fantasmas, mala, helicóptero, jato).
 - `game.js` — desenho do mapa, caminhada da família, polícia e fantasmas nas ruas, balões, HUD, missão, ações com etiquetas de custo, plantão (modal), cenas finais (helicóptero em Miami) e som chiptune via Web Audio.

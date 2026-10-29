@@ -28,7 +28,9 @@
         <button id="backBtn">voltar</button>
       </div>
       <label class="seed">Plantão nº <input id="seedInput" inputmode="numeric" maxlength="6"></label>
+      <button id="quitBtn">FECHAR O JOGO</button>
       <p class="disclaimer">Obra de ficção e paródia. Todos os nomes e personagens são fictícios; qualquer semelhança com pessoas reais é sátira. As notas "inspirado em" citam casos noticiados pela imprensa; investigações não implicam culpa.</p>
+      <p id="version" class="version"></p>
     </section>
 
     <section id="game" class="screen hidden">
@@ -36,7 +38,7 @@
         <div class="row">
           <span id="clock"></span>
           <span id="phaseName"></span>
-          <button id="musicBtn" class="mini" aria-label="Música"></button>
+          <span class="hudBtns"><button id="musicBtn" class="mini" aria-label="Música"></button><button id="menuBtn" class="mini">☰ MENU</button></span>
         </div>
         <div class="meters">
           <div class="meter"><span>CERCO</span><div class="bar"><i id="cercoBar"></i></div><b id="cercoVal"></b></div>
@@ -48,11 +50,16 @@
       <div id="stage">
         <canvas id="map" width="320" height="208"></canvas>
         <div id="labels"></div>
+        <button id="pFake" class="power left" title="Fake news: &quot;estou em Dubai&quot;">📱<b>FAKE NEWS</b><i></i></button>
+        <button id="pTp" class="power right" title="Teletransporte do Funcionário Fantasma">👻<b>TELEPORTE</b><i></i></button>
         <div id="bubbles"></div>
       </div>
       <div id="panel">
-        <section id="mission"><h4>MISSÃO</h4><ul id="goals"></ul></section>
         <div id="actions"></div>
+        <section id="mission">
+          <button id="missionBtn" class="missionBtn" aria-expanded="false">🤝 TRÁFICO DE INFLUÊNCIA <span>▸ ver dicas</span></button>
+          <div id="missionBody" class="hidden"><div id="nextBox"></div><ul id="goals"></ul></div>
+        </section>
         <ol id="log"></ol>
       </div>
     </section>
@@ -65,6 +72,7 @@
       <ul id="endStats"></ul>
       <button id="againBtn" class="big">NOVO PLANTÃO</button>
       <button id="replayBtn">REPETIR ESTE PLANTÃO</button>
+      <button id="homeBtn">TELA PRINCIPAL</button>
     </section>
 
     <div id="toast" class="hidden" role="status"></div>

@@ -147,12 +147,12 @@ test('toda ação concluída gera um resumo com bônus e ônus', () => {
   const s = C.newGame(11);
   s.patrols = s.patrols.map(() => 0);
   C.act(s, 'wait');
-  assert.strictEqual(s.result.title, 'Esperar');
+  assert.strictEqual(s.result.title, 'ESPERAR 72H');
   assert.strictEqual(s.result.fx.hours, 2);
   assert(s.result.notes.length >= 1);
 });
 
-test('a visita ao pai: Michéli leva parte dos reais', () => {
+test('a visita ao pai: Michaela leva parte dos reais', () => {
   const s = C.newGame(9);
   s.node = 'pai'; s.reais = 500;
   C.act(s, 'visit');
@@ -162,7 +162,7 @@ test('a visita ao pai: Michéli leva parte dos reais', () => {
   assert(!C.actions(s).some(a => a.id === 'visit'));
 });
 
-test('o "irmão" Vorcário sempre manda só a metade, uma vez', () => {
+test('o "irmão" Torcaro sempre manda só a metade, uma vez', () => {
   const s = C.newGame(4);
   const before = s.reais;
   C.act(s, 'vorcaro');
@@ -176,7 +176,7 @@ test('depois de Brasília a família anda no Dark Horse', () => {
   assert.strictEqual(C.PHASES[0].vehicle.name, 'Carro da família');
 });
 
-test('o Fantasma ataca com mamadeira ou kit; o kit traz Carlúcio com purpurina', () => {
+test('o Fantasma ataca com mamadeira ou kit; o kit traz Carlitos com purpurina', () => {
   let kitHit = false, attacks = 0;
   for (let seed = 1; seed <= 500 && !kitHit; seed++) {
     const s = C.newGame(seed);
@@ -214,7 +214,7 @@ test('ameaças falsas só aparecem com Paranoia acima de 50', () => {
   assert(fakes > 40, `poucas ameaças falsas: ${fakes}`);
 });
 
-test('Queirós entrega o dinheiro na fazenda', () => {
+test('Queijoz entrega o dinheiro na fazenda', () => {
   const s = C.newGame(2);
   C.act(s, 'call:queiroz'); settle(s);
   C.act(s, 'send:loja'); settle(s);
@@ -294,7 +294,7 @@ test('três níveis: quanto mais fácil, mais a sugestão vence', () => {
   assert.strictEqual(C.newGame(1, 'xyz').level, 'dificil');
 });
 
-test('na Argentina Milê aparece e diz que o pangaré é comida', () => {
+test('na Argentina Mileto aparece e diz que o pangaré é comida', () => {
   const s = C.newGame(6);
   s.phase = 2; s.node = 'ponte'; s.contacts.despachante = true; s.hours = 4;
   C.act(s, 'exit:0'); settle(s);
@@ -304,7 +304,7 @@ test('na Argentina Milê aparece e diz que o pangaré é comida', () => {
   assert(a && a.cost.dc === 9);
   C.act(s, 'milei'); settle(s);
   assert(s.log.some(l => l.text.includes('Esse Pangaré aqui é comida')));
-  assert(!C.actions(s).some(x => x.id === 'milei'), 'Milê só uma vez');
+  assert(!C.actions(s).some(x => x.id === 'milei'), 'Mileto só uma vez');
 });
 
 test('nenhum nome real sobrou no texto visível do jogo', () => {

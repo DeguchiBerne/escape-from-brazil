@@ -14,6 +14,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  const VERSION = '1.1.0';  // única fonte da versão: o Android (build.gradle.kts) lê daqui
   const BAG = 100;          // R$ mil por mala de reais
   const USD_BAG = 400;      // R$ mil (equivalente) por mala de dólares
   const DEADLINE = 17;      // hora 0 = seg 26/10 18:00; prazo do STF = ter 27/10 11:00
@@ -25,11 +26,11 @@
 
   // Todos os nomes são fictícios: parecidos com figuras públicas, nunca iguais (paródia).
   const NAMES = {
-    senador: 'Flávinho Bolsonário', esposa: 'Fernandinha Bolsonário', filha: 'a filha mais velha', filha2: 'a filha caçula',
-    pai: 'Jairo Bolsonário, o Pai', irmao: 'Renã Bolsonário, o caçula', carlos: 'Carlúcio Bolsonário', michelle: 'Michéli Bolsonário',
-    queiroz: 'Fabrízio Queirós', moraes: 'Alexandro de Morais, o Xandão', marcal: 'Paulo Marçau', vorcaro: 'Danilo Vorcário',
-    milei: 'Xavier Milê', lula: 'Lulo da Silvo', policial: 'Policial da blitz', fantasma: 'Fantasma do Comunismo',
-    fantasmaFlavio: 'Funcionário Fantasma do Flávinho', cavalo: HORSE,
+    senador: 'Flaviano Bolsonero', esposa: 'Fernandete Bolsonero', filha: 'a filha mais velha', filha2: 'a filha caçula',
+    pai: 'Jairzão Bolsonero, o Pai', irmao: 'Ronan Bolsonero, o caçula', carlos: 'Carlitos Bolsonero', michelle: 'Michaela Bolsonero',
+    queiroz: 'Fabrizzio Queijoz', moraes: 'Alexandrino de Amores, o Xandão', marcal: 'Pablito Março', vorcaro: 'Danilo Torcaro',
+    milei: 'Xavier Mileto', lula: 'Lulão da Selva', policial: 'Policial da blitz', fantasma: 'Fantasma do Comunismo',
+    fantasmaFlavio: 'Funcionário Fantasma do Flaviano', cavalo: HORSE,
   };
 
   /* Três níveis. "Menos fácil" é o equilíbrio original (a sugestão ★ vence cerca de metade das vezes).
@@ -42,7 +43,7 @@
   const MILEI = 'Esse Pangaré aqui é comida.';
 
   const CONTACTS = {
-    queiroz: { name: 'Queirós', phase: 0, cost: 0, hours: 1, dc: 6, art: 'queiroz',
+    queiroz: { name: 'Queijoz', phase: 0, cost: 0, hours: 1, dc: 6, art: 'queiroz',
       service: 'O ex-assessor busca o dinheiro vivo dos esconderijos e entrega na fazenda. Cobra 10% e às vezes fica com "a parte dele".',
       fact: 'Inspirado no caso das "rachadinhas", investigado pelo MP-RJ a partir de um relatório do Coaf (2018).' },
     capitao: { name: 'o Ex-Capitão', phase: 0, cost: 150, hours: 2, dc: 8, art: 'policial',
@@ -169,7 +170,7 @@
 
   const FACTS = {
     pai: 'Fato: o ex-presidente foi condenado pelo STF em 2025 por trama golpista. Suas crises de soluço viraram notícia várias vezes.',
-    joias: 'Inspirado no caso das joias sauditas, investigado pela PF. A cena com Michéli é paródia.',
+    joias: 'Inspirado no caso das joias sauditas, investigado pela PF. A cena com Michaela é paródia.',
     teleport: 'Referência às suspeitas de "funcionários fantasmas" investigadas no caso das rachadinhas.',
     vorcaro: 'Paródia inspirada na liquidação de um banco privado pelo Banco Central em 2025. O "Banco Mestre" é fictício.',
     milei: 'Paródia. Fala e cena inventadas; o personagem é fictício.',
@@ -208,7 +209,7 @@
       options: [{ label: 'Rir de nervoso', fx: { paranoia: -8 } }, { label: 'Ficar quieto no hotel', fx: { hours: 2, cerco: -5 } }] },
     { title: 'FlightAware de olho', text: 'Curiosos na internet rastreiam todo jatinho que sai de Iguazú.', min: 3, max: 4,
       options: [{ label: 'Pagar o piloto para "voar discreto"', fx: { money: -40, cerco: -6 } }, { label: 'Ignorar a internet', fx: { cerco: 10 } }] },
-    { title: 'Lulo da Silvo chama sua saída de "vergonhosa"', text: 'Diz que você devia ter ficado para provar sua inocência.', min: 3, max: 4,
+    { title: 'Lulão da Selva chama sua saída de "vergonhosa"', text: 'Diz que você devia ter ficado para provar sua inocência.', min: 3, max: 4,
       options: [{ label: 'Responder no X', fx: { cerco: 6, paranoia: -10 } }, { label: 'Fingir que não viu', fx: { paranoia: 8 } }] },
     { title: 'Departamento de Estado promete vistos', text: 'Washington diz que vai liberar a entrada da família.', min: 4, max: 4,
       options: [{ label: 'Comemorar', fx: { paranoia: -20 } }, { label: 'Desconfiar ("e se for comunista?")', fx: { paranoia: 10, cerco: -3 } }] },
@@ -273,7 +274,7 @@
     s.deck = shuffle(s, CARDS.map((_, i) => i));
     s.coach = PHASES.map(ph => ph.coachSpots.length ? pick(s, ph.coachSpots) : null);
     repatrol(s);
-    note(s, 'Segunda, 18h. A eleição acabou ontem. Alexandro de Morais quer seus passaportes até amanhã às 11h.');
+    note(s, 'Segunda, 18h. A eleição acabou ontem. Alexandrino de Amores quer seus passaportes até amanhã às 11h.');
     s.events.push({ type: 'moraes' }, { type: 'phase', phase: 0 });
     return s;
   }
@@ -430,19 +431,19 @@
     if (node.rest) add({ id: 'rest', kind: 'rest', group: 'here', label: 'Descansar', cost: { h: 2, paranoia: -25 } });
     if (node.npc === 'pai' && once(s, 'pai')) {
       add({ id: 'visit', kind: 'visit', group: 'here', label: 'Pedir a bênção ao pai', art: 'pai',
-        detail: '"HIC!" Enquanto isso, Michéli passa a mão nas suas joias: sucesso = leva 20% dos reais, falha = 45%.', cost: { h: 1, paranoia: -20, cerco: 8, dc: 10 } });
+        detail: '"HIC!" Enquanto isso, Michaela passa a mão nas suas joias: sucesso = leva 20% dos reais, falha = 45%.', cost: { h: 1, paranoia: -20, cerco: 8, dc: 10 } });
     }
     if (node.npc === 'irmao' && once(s, 'irmao')) {
       add({ id: 'brother', kind: 'brother', group: 'here', label: 'Pedir ajuda ao irmão caçula', art: 'irmao',
         detail: 'Sucesso: ele distrai a imprensa (Cerco −12). Falha: tuíta onde você está (Cerco +12).', cost: { h: 1, paranoia: -10, dc: 11 } });
     }
     if (s.coach[s.phase] === s.node && once(s, 'coach')) {
-      add({ id: 'coach', kind: 'coach', group: 'here', label: 'Ouvir o coach Paulo Marçau', art: 'marcal',
+      add({ id: 'coach', kind: 'coach', group: 'here', label: 'Ouvir o coach Pablito Março', art: 'marcal',
         detail: 'Motivação garantida. Ele faz live com você ao fundo.', cost: { h: 1, paranoia: -12, cerco: 4 } });
     }
 
     if (node.npc === 'milei' && once(s, 'milei')) {
-      add({ id: 'milei', kind: 'milei', group: 'here', label: 'Pedir ajuda a Xavier Milê', art: 'milei',
+      add({ id: 'milei', kind: 'milei', group: 'here', label: 'Pedir ajuda a Xavier Mileto', art: 'milei',
         detail: `"${MILEI}" Sucesso: a motosserra corta a fila da imigração (Cerco −10). Falha: ele tenta levar o pangaré para o churrasco (+1h, Paranoia +8).`,
         cost: { h: 1, dc: 9 } });
     }
@@ -463,14 +464,14 @@
         label: `Ligar para ${c.name}`, detail: `${c.service} Falha: linha grampeada (Cerco +8).`, cost: { h: c.hours, cerco: 3, pay: price, dc: c.dc } });
     }
     if (s.phase <= 1 && !s.done.vorcaro) {
-      add({ id: 'vorcaro', kind: 'vorcaro', group: 'phone', label: 'Ligar para o "irmão" Vorcário e pedir R$ 400 mil', art: 'vorcaro',
+      add({ id: 'vorcaro', kind: 'vorcaro', group: 'phone', label: 'Ligar para o "irmão" Torcaro e pedir R$ 400 mil', art: 'vorcaro',
         detail: '"Irmão!" Ele sempre manda só a metade. Falha: o áudio vaza (Cerco +12).', cost: { h: 1, gain: 'R$ 200 mil', dc: 10 } });
     }
     if (s.phase === 0 && s.contacts.queiroz) {
       for (const [id, n] of Object.entries(ph.nodes)) {
         const key = stashKey(s, id);
         if (!n.stash || id === s.node || s.taken[key] || s.sent[key]) continue;
-        add({ id: `send:${id}`, kind: 'send', group: 'phone', node: id, label: `Queirós busca ${n.stash.label}`, art: 'queiroz',
+        add({ id: `send:${id}`, kind: 'send', group: 'phone', node: id, label: `Queijoz busca ${n.stash.label}`, art: 'queiroz',
           detail: 'Entrega na fazenda, sem ocupar o carro. Sucesso: fica com 10%. Falha: fica com metade.', cost: { h: 1, gain: `~R$ ${Math.round(n.stash.amount * 0.9)} mil`, dc: 9 } });
       }
     }
@@ -487,7 +488,7 @@
       }
     }
 
-    add({ id: 'wait', kind: 'wait', group: 'other', label: 'Esperar', cost: { h: 2, paranoia: 3 } });
+    add({ id: 'wait', kind: 'wait', group: 'other', label: 'ESPERAR 72H', detail: '(Brincadeira: são só duas.)', cost: { h: 2, paranoia: 3 } });
     add({ id: 'quit', kind: 'quit', group: 'other', label: 'Desistir: "fico para liderar a oposição"' });
     return list;
   }
@@ -555,7 +556,7 @@
         s.sent[stashKey(s, a.node)] = true;
         const amount = Math.round(n.stash.amount * (ok ? 0.9 : 0.5));
         s.deliveries.push({ amount, label: n.stash.label, skimmed: !ok });
-        note(s, ok ? `Queirós foi buscar ${n.stash.label}. Promete entregar na fazenda.` : `Queirós foi buscar ${n.stash.label}... e já avisou que "deu uma despesinha".`);
+        note(s, ok ? `Queijoz foi buscar ${n.stash.label}. Promete entregar na fazenda.` : `Queijoz foi buscar ${n.stash.label}... e já avisou que "deu uma despesinha".`);
         s.events.push({ type: 'call' });
         return;
       }
@@ -583,7 +584,7 @@
         s.events.push({ type: 'coin', amount: 200 });
         return;
       case 'milei':
-        note(s, `Xavier Milê ergue a motosserra, olha o cavalo e grita: "${MILEI}"`);
+        note(s, `Xavier Mileto ergue a motosserra, olha o cavalo e grita: "${MILEI}"`);
         if (ok) { s.cerco = clamp(s.cerco - 10); note(s, '"¡Afuera, burocracia!" Ele corta a fila da imigração ao meio. Cerco −10.'); }
         else {
           advance(s, 1);
@@ -604,7 +605,7 @@
         s.reais -= stolen;
         s.stolen += stolen;
         note(s, '"HIC! Vai, meu filho. HIC! Leva o Fantasma junto. HIC!" A visita sai no jornal.');
-        note(s, stolen ? `Enquanto isso, Michéli "guardou" as suas joias: R$ ${stolen} mil a menos.` : 'Michéli procurou joias, mas você não tinha nada.');
+        note(s, stolen ? `Enquanto isso, Michaela "guardou" as suas joias: R$ ${stolen} mil a menos.` : 'Michaela procurou joias, mas você não tinha nada.');
         s.events.push({ type: 'hic' }, { type: 'stolen', amount: stolen });
         return;
       }
@@ -630,7 +631,7 @@
         if (kit) {
           s.cerco = clamp(s.cerco + 4);
           s.paranoia = clamp(s.paranoia - 5);
-          note(s, 'O kit gay acerta em cheio! Do nada surge o irmão Carlúcio, brilhando de purpurina, e declama:');
+          note(s, 'O kit gay acerta em cheio! Do nada surge o irmão Carlitos, brilhando de purpurina, e declama:');
           note(s, `"${pick(s, POEMS)}" Dá para ver o brilho do satélite. Cerco +4.`);
           s.events.push({ type: 'carlos' });
         } else {
@@ -688,15 +689,15 @@
     s.node = PHASES[p].start;
     s.events.push({ type: 'phase', phase: p });
     note(s, `${PHASES[p].name}: ${PHASES[p].subtitle}.`);
-    if (p === 3) { s.events.push({ type: 'mileiScene' }); note(s, `Na chegada, Xavier Milê olha o cavalo: "${MILEI}"`); }
+    if (p === 3) { s.events.push({ type: 'mileiScene' }); note(s, `Na chegada, Xavier Mileto olha o cavalo: "${MILEI}"`); }
     if (p === 1) {
       note(s, `A partir daqui a família segue no ${HORSE}.`);
       if (s.deliveries.length) {
         for (const d of s.deliveries) {
           s.reais += d.amount;
           note(s, d.skimmed
-            ? `Queirós entregou R$ ${d.amount} mil de ${d.label}. Diz que "o resto molhou na chuva".`
-            : `Queirós entregou R$ ${d.amount} mil de ${d.label}, já descontada a parte dele.`);
+            ? `Queijoz entregou R$ ${d.amount} mil de ${d.label}. Diz que "o resto molhou na chuva".`
+            : `Queijoz entregou R$ ${d.amount} mil de ${d.label}, já descontada a parte dele.`);
         }
         s.deliveries = [];
         s.events.push({ type: 'coin' });
@@ -748,7 +749,7 @@
     if (a.kind === 'duck') {
       s.pending = null;
       test(s, { kind: 'duck', item: p.item, label: p.item === 'kit' ? 'Desviar do kit gay' : 'Desviar da mamadeira de piroca' },
-        10 + s.ghostPower, 0, p.item === 'kit' ? 'O kit acerta: Carlúcio aparece com purpurina (Cerco +4).' : 'A mamadeira acerta: Paranoia +12, +1h.');
+        10 + s.ghostPower, 0, p.item === 'kit' ? 'O kit acerta: Carlitos aparece com purpurina (Cerco +4).' : 'A mamadeira acerta: Paranoia +12, +1h.');
       return;
     }
     if (a.kind === 'lantern') {
@@ -824,7 +825,7 @@
         return;
       case 'send':
         advance(s, 1);
-        test(s, a, 9, 0, 'Queirós fica com metade.');
+        test(s, a, 9, 0, 'Queijoz fica com metade.');
         return;
       case 'exchange':
         advance(s, 1);
@@ -861,7 +862,7 @@
         return;
       case 'visit':
         advance(s, 1);
-        test(s, a, 10, 0, 'Michéli leva 45% dos seus reais em "joias".');
+        test(s, a, 10, 0, 'Michaela leva 45% dos seus reais em "joias".');
         return;
       case 'brother':
         advance(s, 1);
@@ -877,7 +878,7 @@
         advance(s, 1);
         s.paranoia = clamp(s.paranoia - 12);
         s.cerco = clamp(s.cerco + 4);
-        note(s, `Paulo Marçau: "${pick(s, COACH)}"`);
+        note(s, `Pablito Março: "${pick(s, COACH)}"`);
         s.events.push({ type: 'coach' });
         return;
       case 'wait':
@@ -973,9 +974,9 @@
     switch (s.phase) {
       case 0:
         g('Ligar para o Ex-Capitão: o carro passa a levar 5 malas', c.capitao);
-        g('Ligar para Queirós: ele busca dinheiro longe e entrega em Foz', c.queiroz);
+        g('Ligar para Queijoz: ele busca dinheiro longe e entrega em Foz', c.queiroz);
         g('Juntar o dinheiro vivo dos 3 esconderijos ($ no mapa)', stashesLeft(s) === 0);
-        g('Opcional: pedir dinheiro ao "irmão" Vorcário', s.done.vorcaro);
+        g('Opcional: pedir dinheiro ao "irmão" Torcaro', s.done.vorcaro);
         g(`Ir até a ${exitName} e pegar a estrada`, false);
         break;
       case 1:
@@ -1054,7 +1055,7 @@
   }
 
   return {
-    CONTACTS, PHASES, CARDS, THREATS, ENDINGS, COACH, BROTHER, POEMS, FACTS, HORSE, NAMES, LEVELS, MILEI, BAG, USD_BAG, DEADLINE, LIMIT, GRID, RIG_PARANOIA,
+    VERSION, CONTACTS, PHASES, CARDS, THREATS, ENDINGS, COACH, BROTHER, POEMS, FACTS, HORSE, NAMES, LEVELS, MILEI, BAG, USD_BAG, DEADLINE, LIMIT, GRID, RIG_PARANOIA,
     newGame, actions, act, clock, hourOfDay, inWindow, capacity, bags, money, overflow, neighbors, goals, suggest,
   };
 });

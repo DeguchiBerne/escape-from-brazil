@@ -14,10 +14,10 @@
   map.width = W * SCALE; map.height = H * SCALE;
 
   let s = null;
-  let queue = [];          // modais na fila: cena do Morais, resultados, intros de fase
+  let queue = [];          // modais na fila: cena do Amores, resultados, intros de fase
   let party = [];          // [{x, y, dir}] senador, esposa, filha, filha2
   let walk = null;         // animação de caminhada pela estrada
-  let effects = [];        // teletransporte, fake news, dinheiro flutuando, Carlúcio
+  let effects = [];        // teletransporte, fake news, dinheiro flutuando, Carlitos
   let tpMode = false;
   let bubbleTick = 0;
   let pendingArt = null;
@@ -336,7 +336,7 @@
       list.push({ y: w.y, draw: () => put(sprite('fantasma'), w.x, w.y - 4 + Math.sin(now / 300 + i) * 2, { alpha: 0.7, flip: w.dir < 0 }) });
     }
 
-    // A família. Depois de Brasília o Flávinho vai montado no Dark Horse.
+    // A família. Depois de Brasília o Flaviano vai montado no Dark Horse.
     const tp = effects.find(e => e.type === 'teleport');
     const hidden = tp && now - tp.t0 < 450;
     if (!hidden) {
@@ -494,7 +494,14 @@
     $('reais').textContent = `R$ ${fmt(s.reais)} mil`;
     $('usd').textContent = `US$ ${fmt(s.usd)} mil`;
     $('bags').textContent = `Malas ${C.bags(s)}/${C.capacity(s)}`;
-    $('powers').textContent = `Fake news ${s.fakeNews} · Teletransporte ${s.teleports} · Lanterna ${s.lanterns} · Força do Fantasma ${s.ghostPower}`;
+    $('powers').textContent = `Lanterna da realidade ${s.lanterns} · Força do Fantasma ${s.ghostPower}`;
+    const free = !s.pending && !s.ended && !queue.length;
+    const ids = free ? C.actions(s).filter(a => !a.disabled).map(a => a.id) : [];
+    $('pFake').querySelector('i').textContent = s.fakeNews;
+    $('pFake').disabled = !ids.includes('fake');
+    $('pTp').querySelector('i').textContent = s.teleports;
+    $('pTp').disabled = !ids.some(id => id.startsWith('tp:'));
+    $('pTp').classList.toggle('on', tpMode);
   }
 
   const pct = (x, y) => ({ left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%` });
@@ -595,7 +602,18 @@
     box.appendChild(h);
   }
 
+  let missionOpen = false;
+  try { missionOpen = localStorage.getItem('efb.dicas') === '1'; } catch (e) { /* sem armazenamento */ }
   function updateMission() {
+    $('missionBody').classList.toggle('hidden', !missionOpen);
+    $('missionBtn').setAttribute('aria-expanded', String(missionOpen));
+    $('missionBtn').querySelector('span').textContent = missionOpen ? '▾ esconder' : '▸ ver dicas';
+    const next = $('nextBox');
+    next.textContent = '';
+    if (!s.pending && !s.ended && !tpMode) {
+      const list = C.actions(s), sa = list.find(a => a.id === C.suggest(s));
+      if (sa && sa.kind !== 'quit') next.appendChild(button({ ...sa, label: `★ PRÓXIMO PASSO: ${sa.kind === 'go' ? 'ir para ' + sa.label : sa.label}` }, () => play(sa.id), 'next'));
+    }
     const ul = $('goals');
     ul.textContent = '';
     for (const g of C.goals(s)) {
@@ -625,21 +643,14 @@
       return;
     }
 
-    const sa = list.find(a => a.id === sug);
-    if (sa && sa.kind !== 'quit') {
-      box.appendChild(button({ ...sa, label: `★ PRÓXIMO PASSO: ${sa.kind === 'go' ? 'ir para ' + sa.label : sa.label}` }, () => play(sa.id), 'next'));
-    }
-
     const groups = [
       [`AQUI: ${ph.nodes[s.node].name.toUpperCase()}`, a => a.group === 'exit' || a.group === 'here'],
       ['ANDAR (OU TOQUE NO MAPA) · VERMELHO = BLITZ', a => a.group === 'move'],
       ['TELEFONE', a => a.group === 'phone'],
-      ['PODERES', a => a.kind === 'fake'],
     ];
     for (const [title, test] of groups) {
       const items = list.filter(test);
-      const tps = title === 'PODERES' ? list.filter(a => a.kind === 'tp') : [];
-      if (!items.length && !tps.length) continue;
+      if (!items.length) continue;
       section(box, title);
       const grid = document.createElement('div');
       grid.className = 'grid';
@@ -647,10 +658,6 @@
         let cls = a.kind === 'exit' ? 'exit' : a.group === 'power' ? 'power' : a.cops ? 'blitz' : '';
         if (a.id === sug) cls += ' suggested';
         grid.appendChild(button(a, () => play(a.id), cls));
-      }
-      if (tps.length) {
-        grid.appendChild(button({ label: `Teletransporte do Funcionário Fantasma (${s.teleports})`, detail: 'Vai para qualquer lugar da fase: sem tempo, sem rastro, sem blitz, sem dado.', cost: { h: 0 } },
-          () => { tpMode = true; refresh(); }, 'tp'));
       }
       box.appendChild(grid);
     }
@@ -788,7 +795,7 @@
       const q = queue[0];
       if (q.type === 'moraes') {
         showModal({
-          tag: 'STF · BRASILIA · SEGUNDA, 18h', title: 'ALEXANDRO DE MORAIS, O XANDAO',
+          tag: 'STF · BRASILIA · SEGUNDA, 18h', title: 'ALEXANDRINO DE AMORES, O XANDAO',
           text: '— Senador, os passaportes. Amanhã, 11h. Sem atraso. — Claro, ministro… (no fundo da sala, o Fantasma do Comunismo ri baixinho)',
           fact: C.FACTS.moraes, art: ['moraes', 'senador', 'fantasma'],
           choices: [{ label: 'ENGOLIR EM SECO E COMEÇAR A FUGA', onClick: () => { queue.shift(); refresh(); } }],
@@ -804,7 +811,7 @@
         });
       } else if (q.type === 'milei') {
         showModal({
-          tag: 'PUERTO IGUAZU · ARGENTINA', title: 'XAVIER MILE',
+          tag: 'PUERTO IGUAZU · ARGENTINA', title: 'XAVIER MILETO',
           text: `Ele surge de jaqueta de couro, cabelo em pé e motosserra ligada. Olha o cavalo de cima a baixo: — "${C.MILEI}" (HIC!, faz o pangaré, apavorado.)`,
           fact: C.FACTS.milei, art: ['milei', 'cavalo'],
           choices: [{ label: 'SEGURAR AS RÉDEAS COM FORÇA', onClick: () => { queue.shift(); refresh(); } }],
@@ -843,7 +850,7 @@
         const kit = p.item === 'kit';
         showModal({
           tag: '☭ ATAQUE DO FANTASMA', title: kit ? 'O Fantasma arremessa um KIT GAY!' : 'O Fantasma arremessa uma MAMADEIRA DE PIROCA!',
-          text: kit ? 'Se acertar, quem aparece é o irmão Carlúcio, brilhando de purpurina e declamando poesia.' : 'Se acertar, uma hora explicando para as filhas o que é aquilo.',
+          text: kit ? 'Se acertar, quem aparece é o irmão Carlitos, brilhando de purpurina e declamando poesia.' : 'Se acertar, uma hora explicando para as filhas o que é aquilo.',
           fact: 'As duas "armas" são fake news famosas da eleição de 2018; aqui o Fantasma devolve o presente.',
           art: ['fantasma', kit ? 'kit' : 'mamadeira'], choices,
         });
@@ -1053,7 +1060,7 @@
       M.blob(eg, 220, 128, 5, '#1a1423'); M.blob(eg, 270, 128, 5, '#1a1423');
       eput('policial', 196, fy, { k: 2, flip: true });
       eput('policial', 110, fy, { k: 2 });
-      // Na TV da esquina, Morais levanta uma sobrancelha.
+      // Na TV da esquina, Amores levanta uma sobrancelha.
       er(28, 40, 58, 46, '#1a1423'); er(31, 43, 52, 36, '#4a6fb5');
       eput('moraes', 57, 79, { k: 1.5 });
       er(52, 86, 10, 6, '#1a1423');
@@ -1075,7 +1082,7 @@
     const stats = [
       `Tempo de fuga: ${Math.round(s.hours)}h (${C.clock(s.hours)})`,
       `Dinheiro no bolso: R$ ${fmt(s.reais)} mil + US$ ${fmt(s.usd)} mil`,
-      `Deixado para trás: R$ ${fmt(s.lost)} mil · "guardado" por Michéli: R$ ${fmt(s.stolen)} mil`,
+      `Deixado para trás: R$ ${fmt(s.lost)} mil · "guardado" por Michaela: R$ ${fmt(s.stolen)} mil`,
       `Dificuldade: ${C.LEVELS[s.level].name}`,
       `Dados: ${s.stats.rolls} rolados, ${s.stats.fails} falhas, ${s.stats.rigged} "não auditados"`,
       `Ataques do Fantasma: ${s.stats.attacks} · força final ${s.ghostPower}`,
@@ -1166,6 +1173,60 @@
     const v = parseInt($('seedInput').value, 10);
     start(Number.isFinite(v) && v > 0 ? v : 1 + Math.floor(Math.random() * 999999), level);
   });
+  $('pFake').addEventListener('click', () => play('fake'));
+  $('pTp').addEventListener('click', () => { tpMode = !tpMode; refresh(); });
+  $('missionBtn').addEventListener('click', () => {
+    missionOpen = !missionOpen;
+    try { localStorage.setItem('efb.dicas', missionOpen ? '1' : '0'); } catch (e) { /* sem armazenamento */ }
+    updateMission();
+  });
+
+  function goTitle() {
+    hideModal();
+    tpMode = false;
+    $('game').classList.add('hidden');
+    $('end').classList.add('hidden');
+    $('title').classList.remove('hidden');
+    $('startBtn').classList.remove('hidden');
+    $('levelPick').classList.add('hidden');
+    $('levelSay').classList.add('hidden');
+    window.scrollTo(0, 0);
+  }
+  $('menuBtn').addEventListener('click', () => {
+    if (!s || queue.length || s.pending) return;
+    showModal({
+      tag: 'MENU', title: 'PAUSA NA FUGA', text: 'O relógio só anda quando você age.', art: ['senador'],
+      choices: [
+        { label: 'CONTINUAR A FUGA', cls: 'ok', onClick: () => refresh() },
+        { label: 'Voltar à tela principal', detail: 'A fuga em andamento será perdida.', onClick: goTitle },
+      ],
+    });
+  });
+  $('homeBtn').addEventListener('click', goTitle);
+  $('quitBtn').addEventListener('click', () => {
+    showModal({
+      tag: '⚠ AVISO', title: 'FECHAR O JOGO?', text: 'O Fantasma do Comunismo continua solto lá fora. Tem certeza?', art: ['fantasma'],
+      choices: [
+        { label: 'SIM, FECHAR', cls: 'ok', onClick: () => {
+          showModal({ tag: 'STF · DECISÃO FINAL', title: '"ACABOU."', text: `\u2014 ${C.NAMES.moraes}`, art: ['moraes'], choices: [] });
+          SFX.lost();
+          setTimeout(closeGame, 1800);
+        } },
+        { label: 'Não, voltar', onClick: hideModal },
+      ],
+    });
+  });
+  function closeGame() {
+    if (window.EscapeAndroid) { window.EscapeAndroid.exit(); return; }
+    window.close();
+    // Navegadores só deixam fechar abas abertas por script; nas outras, fica o recado.
+    setTimeout(() => {
+      hideModal();
+      $('title').innerHTML = '<h1>ACABOU.</h1><p class="pitch">Pode fechar esta aba. (Ou recarregue para fugir de novo.)</p>';
+    }, 300);
+  }
+  $('version').textContent = `v${C.VERSION}`;
+
   $('againBtn').addEventListener('click', () => start(1 + Math.floor(Math.random() * 999999), s.level));
   $('replayBtn').addEventListener('click', () => start(s.seed, s.level));
   $('musicBtn').addEventListener('click', () => {

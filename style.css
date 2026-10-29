@@ -54,12 +54,12 @@ button.big { font-family: var(--pixel); font-size: 16px; padding: 14px 28px; bac
 #clock { font-family: var(--pixel); font-size: 12px; color: var(--gold); }
 #phaseName { font-family: var(--pixel); font-size: 11px; }
 #hud .small { color: var(--quiet); font-size: 19px; }
-.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.meter { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; font-family: var(--pixel); font-size: 8px; }
-.bar { height: 10px; background: #000; border: 2px solid var(--line); }
+.meters { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.meter { display: grid; grid-template-columns: 9.5em 1fr auto; align-items: center; gap: 8px; font-family: var(--pixel); font-size: 16px; }
+.bar { height: 20px; background: #000; border: 3px solid var(--line); }
 .bar i { display: block; height: 100%; width: 0; background: var(--red); transition: width .3s steps(6); }
 .paranoia .bar i { background: var(--purple); }
-.meter b { font-size: 9px; min-width: 2.4em; text-align: right; }
+.meter b { font-size: 18px; min-width: 2.4em; text-align: right; }
 .meter.alert b { color: var(--red); animation: blink .6s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .2; } }
 
@@ -83,6 +83,19 @@ button.big { font-family: var(--pixel); font-size: 16px; padding: 14px 28px; bac
 #mission { background: #0b0812; border: 3px solid var(--gold); padding: 6px 10px; }
 #mission h4, #actions h4 { font-family: var(--pixel); font-size: 9px; color: var(--quiet); margin: 6px 0 4px; }
 #mission h4 { color: var(--gold); margin-top: 2px; }
+.hudBtns { display: flex; gap: 6px; }
+button.missionBtn { width: 100%; background: none; border: 0; box-shadow: none; padding: 4px 0; font-family: var(--pixel); font-size: 11px; color: var(--gold); display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
+button.missionBtn span { font-family: var(--body); font-size: 18px; color: var(--quiet); white-space: nowrap; }
+#missionBody { display: grid; gap: 8px; margin-top: 6px; }
+#missionBody.hidden { display: none; }
+button.power { position: absolute; top: 4px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 18px; background: rgba(18, 14, 28, .88); box-shadow: 2px 2px 0 #000; }
+button.power.left { left: 4px; border-color: var(--gold); }
+button.power.right { right: 4px; border-color: #e8e8f0; }
+button.power b { font-family: var(--pixel); font-size: clamp(6px, 1.8vw, 8px); font-weight: normal; }
+button.power i { font-style: normal; font-family: var(--pixel); font-size: 10px; background: var(--red); padding: 2px 4px; }
+button.power.on { background: #1d6b2d; }
+button.power:disabled { opacity: .45; }
+.version { font-family: var(--pixel); font-size: 9px; color: var(--quiet); margin: 0; }
 #goals { list-style: none; margin: 0; padding: 0; font-size: 19px; }
 #goals li.done { color: var(--quiet); text-decoration: line-through; }
 #actions { display: grid; gap: 6px; }
@@ -137,9 +150,9 @@ button small { display: block; color: var(--quiet); font-size: 16px; }
 /* v3: dinheiro, dado, modais de resultado */
 #money { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; background: #0b0812; border: 2px solid #6b5413; padding: 6px 8px; }
 #money .label-money { font-family: var(--pixel); font-size: 8px; color: var(--quiet); width: 100%; }
-#money b { font-family: var(--pixel); font-size: clamp(13px, 4vw, 18px); color: var(--gold); font-weight: normal; text-shadow: 2px 2px 0 #000; }
+#money b { font-family: var(--pixel); font-size: clamp(7px, 2vw, 9px); color: var(--gold); font-weight: normal; text-shadow: 2px 2px 0 #000; }
 #money #usd { color: #9df29a; }
-#money #bags { margin-left: auto; color: var(--quiet); font-size: 18px; }
+#money #bags { margin-left: auto; color: var(--quiet); font-size: 16px; }
 #money b.up { animation: up .9s steps(4); }
 #money b.down { animation: down .9s steps(4); }
 @keyframes up { 0%, 50% { color: #9df29a; transform: scale(1.15); } }

@@ -11,3 +11,6 @@ tests/shots/
 tests/qa-last.log
 # Claude Code
 .claude/
+# IDE
+.idea/
+android/.idea/

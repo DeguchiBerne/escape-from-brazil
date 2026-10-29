@@ -5,8 +5,10 @@ android {
     compileSdk = 37
     defaultConfig {
         applicationId = "dev.escape.brazil"; minSdk = 26; targetSdk = 37
-        versionCode = 1
-        versionName = "0.4.0"
+        // A versão vem de core.js (const VERSION = 'x.y.z'), a mesma que o HTML mostra.
+        val version = Regex("""VERSION = '(\d+)\.(\d+)\.(\d+)'""").find(rootProject.projectDir.parentFile.resolve("core.js").readText())!!.groupValues
+        versionName = "${version[1]}.${version[2]}.${version[3]}"
+        versionCode = version[1].toInt() * 10000 + version[2].toInt() * 100 + version[3].toInt()
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 }

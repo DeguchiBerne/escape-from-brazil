@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setMediaPlaybackRequiresUserGesture(false);
         web.getSettings().setAllowFileAccess(false);
+        web.addJavascriptInterface(new Bridge(), "EscapeAndroid");
         web.setWebViewClient(new WebViewClient() {
             // Links externos abrem no navegador do aparelho.
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -49,6 +50,11 @@ public class MainActivity extends Activity {
             handled -> { if (!"true".equals(handled)) finish(); });
     }
     @Override public void onBackPressed() { handleBack(); }
+
+    /** "FECHAR O JOGO" na tela de título: window.close() não fecha um app, então o JS chama exit(). */
+    public class Bridge {
+        @android.webkit.JavascriptInterface public void exit() { runOnUiThread(MainActivity.this::finishAndRemoveTask); }
+    }
 
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
     @Override protected void onPause() { web.onPause(); web.pauseTimers(); super.onPause(); }
